@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Solar Interativo 3D</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="controls">
+        <button id="btn-pause">Pausar/Continuar</button>
+        <button id="btn-view">Alternar 2D/3D</button>
+        <button id="btn-reset">Resetar Câmera</button>
+    </div>
+
+    <aside id="info-panel" class="hidden">
+        <button id="close-panel">X</button>
+        <h2 id="planet-name">Nome do Planeta</h2>
+        <p><strong>Distância do Sol:</strong> <span id="planet-dist"></span></p>
+        <p><strong>Diâmetro:</strong> <span id="planet-size"></span></p>
+        <p><strong>Luas:</strong> <span id="planet-moons"></span></p>
+        <p><strong>Atmosfera:</strong> <span id="planet-atm"></span></p>
+        <p><strong>Temperatura Média:</strong> <span id="planet-temp"></span></p>
+        <p class="curiosity"><em>Curiosidade:</em> <span id="planet-fact"></span></p>
+    </aside>
+
+    <div id="universe">
+        <div id="solar-system" class="view-3d">
+            <div id="sun"></div>
+            
+            <div class="orbit mercury-orbit"><div class="planet mercury" data-id="mercury"></div></div>
+            <div class="orbit venus-orbit"><div class="planet venus" data-id="venus"></div></div>
+            <div class="orbit earth-orbit"><div class="planet earth" data-id="earth"></div></div>
+            <div class="orbit mars-orbit"><div class="planet mars" data-id="mars"></div></div>
+            <div class="orbit jupiter-orbit"><div class="planet jupiter" data-id="jupiter"></div></div>
+            <div class="orbit saturn-orbit"><div class="planet saturn" data-id="saturn"><div class="rings"></div></div></div>
+            <div class="orbit uranus-orbit"><div class="planet uranus" data-id="uranus"></div></div>
+            <div class="orbit neptune-orbit"><div class="planet neptune" data-id="neptune"></div></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
