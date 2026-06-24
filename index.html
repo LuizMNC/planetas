@@ -76,6 +76,11 @@
             <button id="btn-toggle-moons" class="ui-btn active">Luas: ON</button>
             <button id="btn-toggle-iss" class="ui-btn active">ISS: ON</button>
         </div>
+        
+        <div class="control-group speed-control">
+            <label for="time-scale" id="speed-label">Escala de Tempo: 1.0x</label>
+            <input type="range" id="time-scale" min="0" max="100" value="10" step="1" title="Ajustar velocidade da simulação">
+        </div>
     </footer>
 
     <aside id="info-panel" aria-hidden="true">
@@ -107,6 +112,11 @@
             <div class="topic">
                 <h3>Movimento Uniforme e Microgravidade Eficiente</h3>
                 <p>A ISS executa uma trajetória circular contínua em regime de Movimento Uniforme Orbital. A sensação de gravidade zero experienciada a bordo não advém da ausência de força gravitacional (que na órbita terrestre média ainda atua em cerca de 89%), mas sim do estado cinemático de <strong>queda livre perpétua</strong> tangencial à curvatura geométrica da Terra.</p>
+            </div>
+
+            <div class="topic">
+                <h3>Leis de Kepler e Dinâmica Temporal</h3>
+                <p>Utilizando o controle de Escala de Tempo, é possível observar a aplicação direta da Terceira Lei de Kepler (Lei dos Períodos): os planetas mais próximos ao Sol completam sua translação em um período consideravelmente menor, enquanto os gigantes gasosos nas extremidades do sistema apresentam um movimento orbital muito mais lento e alongado.</p>
             </div>
         </div>
     </article>
