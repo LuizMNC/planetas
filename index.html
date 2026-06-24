@@ -1,73 +1,38 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Astrofísico 3D - Escala Dinâmica</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div id="canvas-container"></div>
+<nav id="astro-menu">
+    <h3>Catálogo Cósmico</h3>
+    <div class="menu-scroll">
+        <div class="menu-category">☀️ Estrela</div>
+        <ul class="astro-list">
+            <li class="astro-btn" data-target="sun">Sol</li>
+        </ul>
 
-    <div id="author-signature">
-        Projeto desenvolvido por: <strong>Luiz Miguel N. Cardoso</strong><br>
-        Física UFPA - Campus Abaetetuba
+        <div class="menu-category">🪨 Planetas Rochosos</div>
+        <ul class="astro-list">
+            <li class="astro-btn" data-target="mercury">Mercúrio</li>
+            <li class="astro-btn" data-target="venus">Vênus</li>
+            <li class="astro-btn" data-target="earth">Terra</li>
+            <li class="astro-btn" data-target="mars">Marte</li>
+        </ul>
+
+        <div class="menu-category">🌪️ Gigantes Gasosos e de Gelo</div>
+        <ul class="astro-list">
+            <li class="astro-btn" data-target="jupiter">Júpiter</li>
+            <li class="astro-btn" data-target="saturn">Saturno</li>
+            <li class="astro-btn" data-target="uranus">Urano</li>
+            <li class="astro-btn" data-target="neptune">Netuno</li>
+        </ul>
+
+        <div class="menu-category">🌑 Satélites Naturais</div>
+        <ul class="astro-list">
+            <li class="astro-btn" data-target="moon">Lua (Terra)</li>
+            <li class="astro-btn" data-target="phobos">Fobos (Marte)</li>
+            <li class="astro-btn" data-target="europa">Europa (Júpiter)</li>
+            <li class="astro-btn" data-target="titan">Titã (Saturno)</li>
+        </ul>
+
+        <div class="menu-category">🛰️ Satélites Artificiais</div>
+        <ul class="astro-list">
+            <li class="astro-btn" data-target="iss">Estação Espacial (ISS)</li>
+        </ul>
     </div>
-
-    <div class="controls top-controls">
-        <button id="btn-view">Visão de Topo</button>
-        <button id="btn-reset">Visão Geral</button>
-        <button id="btn-physics" class="highlight-btn">🌌 Física do Espaço</button>
-        <button id="btn-toggle-galaxy" class="galaxy-btn">Via-Láctea: OFF</button>
-    </div>
-
-    <nav id="astro-menu">
-        <h3>Destinos</h3>
-        <ul id="astro-list">
-            </ul>
-    </nav>
-
-    <div class="controls bottom-controls">
-        <div class="control-group">
-            <button id="btn-toggle-planets" class="active">Planetas: ON</button>
-            <button id="btn-toggle-moons" class="active">Luas: ON</button>
-            <button id="btn-toggle-iss" class="active">ISS: ON</button>
-        </div>
-    </div>
-
-    <aside id="info-panel">
-        <button id="close-panel">X</button>
-        <h2 id="planet-name">Astro</h2>
-        <p><strong>Classificação:</strong> <span id="planet-type"></span></p>
-        <p><strong>Distância:</strong> <span id="planet-dist"></span></p>
-        <p><strong>Diâmetro:</strong> <span id="planet-size"></span></p>
-        <p><strong>Características:</strong> <span id="planet-atm"></span></p>
-        <p><strong>Temperatura:</strong> <span id="planet-temp"></span></p>
-        <div class="curiosity">
-            <strong>Fato Curioso:</strong><br>
-            <span id="planet-fact"></span>
-        </div>
-    </aside>
-
-    <div id="physics-modal" class="hidden">
-        <div class="modal-content">
-            <button id="close-physics">X</button>
-            <h2>Explorando a Física no Espaço</h2>
-            
-            <div class="topic">
-                <h3>Escala Semi-Proporcional</h3>
-                <p>Para fins didáticos, esta simulação usa uma escala visual otimizada. Na realidade, o Sol é 109 vezes maior que a Terra. Aqui, ele é mantido massivo, mas reduzido o suficiente para que possamos observar os planetas rochosos confortavelmente. A hierarquia física (Júpiter maior que a Terra, Terra maior que Marte) é rigorosamente mantida.</p>
-            </div>
-
-            <div class="topic">
-                <h3>Movimento Uniforme e Microgravidade (ISS)</h3>
-                <p>A ISS orbita a Terra a apenas 400 km de altitude viajando a 28.000 km/h. Os tripulantes experimentam a "microgravidade" não por falta de gravidade, mas porque a estação está em um estado de <strong>queda livre contínua</strong>, gerando a sensação de imponderabilidade.</p>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+</nav>
