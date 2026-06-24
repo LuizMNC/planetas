@@ -13,7 +13,7 @@ body, html {
     height: 100%; 
     overflow: hidden; 
     background-color: #020208; 
-    touch-action: none; /* Bloqueia o comportamento de scroll nativo do navegador sobrepondo o WebGL */
+    touch-action: none; 
 }
 
 #canvas-container { 
@@ -218,9 +218,8 @@ body, html {
 #close-physics { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 2rem; color: #64748b; cursor: pointer; }
 #close-physics:hover { color: #ffffff; }
 
-/* --- Otimização Dinâmica de Dispositivos Móveis (Media Queries) --- */
+/* --- Otimização Dinâmica de Dispositivos Móveis --- */
 @media (max-width: 768px) {
-    /* Menu Lateral passa a ser uma Gaveta de Polegar Inferior Transversal */
     #astro-menu { 
         top: auto; 
         bottom: 0; 
@@ -241,7 +240,6 @@ body, html {
     .astro-list { display: flex; gap: 6px; }
     .astro-list li { margin-bottom: 0; padding: 10px 16px; font-size: 0.8rem; background: rgba(255,255,255,0.05); }
 
-    /* Painel informativo em Mobile vira Janela Flutuante Superior Meio-Corpo */
     #info-panel { 
         width: 100%; 
         height: 45%; 
@@ -253,10 +251,10 @@ body, html {
         border-radius: 20px 20px 0 0; 
         padding: 24px;
     }
-    #info-panel.visible { bottom: 160px; right: 0; } /* Tranca acima da barra de navegação móvel */
+    #info-panel.visible { bottom: 160px; right: 0; }
 
     .top-controls { justify-content: center; width: 100%; left: 0; padding: 0 10px; gap: 6px; }
     .ui-btn { padding: 8px 12px; font-size: 0.75rem; }
-    .bottom-controls { display: none; } /* Ocultados para evitar sobreposição estrutural no mobile */
+    .bottom-controls { display: none; }
     #author-signature { display: none; }
 }
