@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Solar 3D - Física UFPA</title>
+    <title>Simulador Astrofísico 3D - Escala Real</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -17,8 +17,8 @@
     <div class="controls top-controls">
         <button id="btn-view">Visão de Topo</button>
         <button id="btn-reset">Visão Geral (Sol)</button>
-        <button id="btn-toggle-mw" class="galaxy-btn">🌌 Via-Láctea: OFF</button>
-        <button id="btn-physics" class="highlight-btn">Física do Espaço</button>
+        <button id="btn-physics" class="highlight-btn">🌌 Física do Espaço</button>
+        <button id="btn-toggle-galaxy" class="galaxy-btn">Via-Láctea: OFF</button>
     </div>
 
     <div class="controls bottom-controls">
@@ -34,7 +34,7 @@
         <h2 id="planet-name">Astro</h2>
         <p><strong>Classificação:</strong> <span id="planet-type"></span></p>
         <p><strong>Distância:</strong> <span id="planet-dist"></span></p>
-        <p><strong>Diâmetro Real:</strong> <span id="planet-size"></span></p>
+        <p><strong>Diâmetro:</strong> <span id="planet-size"></span></p>
         <p><strong>Características:</strong> <span id="planet-atm"></span></p>
         <p><strong>Temperatura:</strong> <span id="planet-temp"></span></p>
         <div class="curiosity">
@@ -46,21 +46,21 @@
     <div id="physics-modal" class="hidden">
         <div class="modal-content">
             <button id="close-physics">X</button>
-            <h2>Explorando o Espaço: O Desafio da Escala</h2>
+            <h2>Explorando a Física no Espaço</h2>
             
             <div class="topic">
-                <h3>A Verdadeira Dimensão</h3>
-                <p>Nesta simulação, os <strong>volumes dos planetas estão proporcionais entre si</strong> (Júpiter tem um raio 11 vezes maior que o da Terra). No entanto, distâncias foram adaptadas. Se usássemos a distância real, a Terra estaria a quase 12 mil vezes o seu próprio diâmetro de distância do Sol, tornando-a um pixel invisível na tela!</p>
+                <h3>A Escala Volumétrica Real</h3>
+                <p>Nesta simulação, os <strong>volumes</strong> dos astros estão em escala real proporcional. A Terra (diâmetro de 12.742 km) tem valor 1. O Sol, sendo colossal, tem valor 109. Por isso o Sol parece tão massivo na tela em comparação aos planetas rochosos. As distâncias de órbita foram logaritmicamente comprimidas para que tudo caiba na sua tela, ou os planetas estariam a dezenas de quilômetros virtuais de distância!</p>
             </div>
 
             <div class="topic">
-                <h3>O Movimento Uniforme</h3>
-                <p>A velocidade orbital dos planetas diminui conforme nos afastamos do Sol, obedecendo à Terceira Lei de Kepler. Mercúrio viaja a 47 km/s, enquanto Netuno arrasta-se a apenas 5,4 km/s em sua órbita monumental.</p>
+                <h3>Velocidade da Luz</h3>
+                <p>A luz viaja no vácuo a aproximadamente <strong>300.000 km/s</strong> ($c \approx 3 \times 10^8 \text{ m/s}$). Como a Terra está a 149,6 milhões de km do Sol, aplicando $\Delta t = \Delta s / v$, vemos que a luz leva cerca de 8 minutos e 20 segundos para nos alcançar.</p>
             </div>
 
             <div class="topic">
-                <h3>A Via Láctea</h3>
-                <p>Nossa galáxia é uma espiral barrada com mais de 100 mil anos-luz de diâmetro. O Sistema Solar viaja pelo espaço a cerca de 828.000 km/h orbitando o centro galáctico, levando cerca de 230 milhões de anos para dar uma volta completa.</p>
+                <h3>Movimento Uniforme e Microgravidade (ISS)</h3>
+                <p>A ISS orbita a Terra a apenas 400 km de altitude. Ela viaja a cerca de 28.000 km/h. Seus tripulantes experimentam a "microgravidade" não porque a gravidade sumiu (ela ainda é 90% da força na superfície), mas porque a ISS está em um estado de <strong>queda livre contínua</strong> ao redor do globo, com sua velocidade tangencial impedindo que colida com o solo.</p>
             </div>
         </div>
     </div>
