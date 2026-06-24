@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Astrofísico 3D - Edição Fotorrealista</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Simulador Astrofísico 3D Pro - Sistema Solar</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     </div>
 
     <header class="controls top-controls">
-        <button id="btn-view" class="ui-btn">Visão de Topo</button>
+        <button id="btn-view" class="ui-btn">Visão Zenital</button>
         <button id="btn-reset" class="ui-btn">Visão Geral</button>
         <button id="btn-physics" class="ui-btn highlight-btn">🌌 Física do Espaço</button>
         <button id="btn-toggle-galaxy" class="ui-btn galaxy-btn">Via-Láctea: OFF</button>
@@ -24,39 +24,49 @@
     <nav id="astro-menu" aria-label="Navegação do Sistema Solar">
         <h3>Catálogo Cósmico</h3>
         <div class="menu-scroll">
-            <div class="menu-category">Estrela</div>
-            <ul class="astro-list">
-                <li class="astro-btn" data-target="sun">☀️ Sol</li>
-            </ul>
+            <section class="menu-group">
+                <h4 class="menu-category">Estrela Central</h4>
+                <ul class="astro-list">
+                    <li class="astro-btn" data-target="sun">Sol</li>
+                </ul>
+            </section>
 
-            <div class="menu-category">Planetas Rochosos</div>
-            <ul class="astro-list">
-                <li class="astro-btn" data-target="mercury">🪨 Mercúrio</li>
-                <li class="astro-btn" data-target="venus">🪐 Vênus</li>
-                <li class="astro-btn" data-target="earth">🌍 Terra</li>
-                <li class="astro-btn" data-target="mars">🔴 Marte</li>
-            </ul>
+            <section class="menu-group">
+                <h4 class="menu-category">Planetas Rochosos</h4>
+                <ul class="astro-list">
+                    <li class="astro-btn" data-target="mercury">Mercúrio</li>
+                    <li class="astro-btn" data-target="venus">Vênus</li>
+                    <li class="astro-btn" data-target="earth">Terra</li>
+                    <li class="astro-btn" data-target="mars">Marte</li>
+                </ul>
+            </section>
 
-            <div class="menu-category">Gigantes Gasosos / Gelo</div>
-            <ul class="astro-list">
-                <li class="astro-btn" data-target="jupiter">🪐 Júpiter</li>
-                <li class="astro-btn" data-target="saturn">🪐 Saturno</li>
-                <li class="astro-btn" data-target="uranus">💎 Urano</li>
-                <li class="astro-btn" data-target="neptune">🔵 Netuno</li>
-            </ul>
+            <section class="menu-group">
+                <h4 class="menu-category">Gigantes Gasosos / Gelo</h4>
+                <ul class="astro-list">
+                    <li class="astro-btn" data-target="jupiter">Júpiter</li>
+                    <li class="astro-btn" data-target="saturn">Saturno</li>
+                    <li class="astro-btn" data-target="uranus">Urano</li>
+                    <li class="astro-btn" data-target="neptune">Netuno</li>
+                </ul>
+            </section>
 
-            <div class="menu-category">Satélites Naturais</div>
-            <ul class="astro-list">
-                <li class="astro-btn" data-target="moon">🌑 Lua (Terra)</li>
-                <li class="astro-btn" data-target="phobos">🌑 Fobos (Marte)</li>
-                <li class="astro-btn" data-target="europa">❄️ Europa (Júpiter)</li>
-                <li class="astro-btn" data-target="titan">☁️ Titã (Saturno)</li>
-            </ul>
+            <section class="menu-group">
+                <h4 class="menu-category">Satélites Naturais</h4>
+                <ul class="astro-list">
+                    <li class="astro-btn" data-target="moon">Lua (Terra)</li>
+                    <li class="astro-btn" data-target="phobos">Fobos (Marte)</li>
+                    <li class="astro-btn" data-target="europa">Europa (Júpiter)</li>
+                    <li class="astro-btn" data-target="titan">Titã (Saturno)</li>
+                </ul>
+            </section>
 
-            <div class="menu-category">Satélites Artificiais</div>
-            <ul class="astro-list">
-                <li class="astro-btn" data-target="iss">🛰️ Estação Espacial (ISS)</li>
-            </ul>
+            <section class="menu-group">
+                <h4 class="menu-category">Satélites Artificiais</h4>
+                <ul class="astro-list">
+                    <li class="astro-btn" data-target="iss">Estação Espacial (ISS)</li>
+                </ul>
+            </section>
         </div>
     </nav>
 
@@ -68,38 +78,38 @@
         </div>
     </footer>
 
-    <aside id="info-panel" aria-live="polite">
-        <button id="close-panel" class="close-btn" Skinner-label="Fechar Painel">&times;</button>
+    <aside id="info-panel" aria-hidden="true">
+        <button id="close-panel" aria-label="Fechar painel">&times;</button>
         <h2 id="planet-name">Astro</h2>
-        <div class="info-content">
+        <div class="panel-content">
             <p><strong>Classificação:</strong> <span id="planet-type"></span></p>
-            <p><strong>Distância do Sol:</strong> <span id="planet-dist"></span></p>
+            <p><strong>Distância ao Sol:</strong> <span id="planet-dist"></span></p>
             <p><strong>Diâmetro Equatorial:</strong> <span id="planet-size"></span></p>
-            <p><strong>Atmosfera:</strong> <span id="planet-atm"></span></p>
+            <p><strong>Composição Atmosférica:</strong> <span id="planet-atm"></span></p>
             <p><strong>Temperatura Média:</strong> <span id="planet-temp"></span></p>
-        </div>
-        <div class="curiosity">
-            <strong>Fato Didático/Curiosidade:</strong><br>
-            <span id="planet-fact"></span>
+            <div class="curiosity">
+                <strong>Análise Científica:</strong><br>
+                <span id="planet-fact"></span>
+            </div>
         </div>
     </aside>
 
-    <div id="physics-modal" class="hidden" role="dialog" aria-labelledby="modal-title">
+    <article id="physics-modal" class="hidden" aria-modal="true" role="dialog">
         <div class="modal-content">
-            <button id="close-physics" class="close-btn">&times;</button>
-            <h2 id="modal-title">Explorando a Física no Espaço</h2>
+            <button id="close-physics" aria-label="Fechar modal">&times;</button>
+            <h2>Mecânica Orbital e Elementos de Física</h2>
             
             <div class="topic">
-                <h3>Escala Didática Otimizada</h3>
-                <p>Para fins pedagógicos, esta simulação adota uma proporcionalidade mista. Reduzimos o diâmetro massivo do Sol e distanciamos as órbitas de forma semi-proporcional para viabilizar a navegação em telas digitais. Contudo, as magnitudes relativas originais (ex: Júpiter sendo o maior planeta do sistema) são preservadas.</p>
+                <h3>Escala Didática Adaptativa</h3>
+                <p>Para mitigar o vazio do espaço profundo e permitir a visualização síncrona, esta simulação adota uma proporcionalidade semi-escalonada. A hierarquia mecânica dos volumes (Gigantes Gasosos > Planetas Rochosos > Satélites) é mantida sob um mapeamento logarítmico de distâncias para manter os corpos visíveis no mesmo plano focal.</p>
             </div>
 
             <div class="topic">
-                <h3>Mecânica Orbital e Microgravidade (ISS)</h3>
-                <p>A ISS desloca-se em Movimento Uniforme a aproximadamente 28.000 km/h a 400 km de altitude. Os astronautas flutuam não por ausência de gravidade (que lá corresponde a cerca de 90% da terrestre), mas porque a estação encontra-se em um estado de <strong>queda livre perpétua</strong> e controlada ao redor da curvatura da Terra.</p>
+                <h3>Movimento Uniforme e Microgravidade Eficiente</h3>
+                <p>A ISS executa uma trajetória circular contínua em regime de Movimento Uniforme Orbital. A sensação de gravidade zero experienciada a bordo não advém da ausência de força gravitacional (que na órbita terrestre média ainda atua em cerca de 89%), mas sim do estado cinemático de <strong>queda livre perpétua</strong> tangencial à curvatura geométrica da Terra.</p>
             </div>
         </div>
-    </div>
+    </article>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
