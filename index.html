@@ -1,38 +1,108 @@
-<nav id="astro-menu">
-    <h3>Catálogo Cósmico</h3>
-    <div class="menu-scroll">
-        <div class="menu-category">☀️ Estrela</div>
-        <ul class="astro-list">
-            <li class="astro-btn" data-target="sun">Sol</li>
-        </ul>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Simulador Astrofísico 3D - Edição Fotorrealista</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
 
-        <div class="menu-category">🪨 Planetas Rochosos</div>
-        <ul class="astro-list">
-            <li class="astro-btn" data-target="mercury">Mercúrio</li>
-            <li class="astro-btn" data-target="venus">Vênus</li>
-            <li class="astro-btn" data-target="earth">Terra</li>
-            <li class="astro-btn" data-target="mars">Marte</li>
-        </ul>
-
-        <div class="menu-category">🌪️ Gigantes Gasosos e de Gelo</div>
-        <ul class="astro-list">
-            <li class="astro-btn" data-target="jupiter">Júpiter</li>
-            <li class="astro-btn" data-target="saturn">Saturno</li>
-            <li class="astro-btn" data-target="uranus">Urano</li>
-            <li class="astro-btn" data-target="neptune">Netuno</li>
-        </ul>
-
-        <div class="menu-category">🌑 Satélites Naturais</div>
-        <ul class="astro-list">
-            <li class="astro-btn" data-target="moon">Lua (Terra)</li>
-            <li class="astro-btn" data-target="phobos">Fobos (Marte)</li>
-            <li class="astro-btn" data-target="europa">Europa (Júpiter)</li>
-            <li class="astro-btn" data-target="titan">Titã (Saturno)</li>
-        </ul>
-
-        <div class="menu-category">🛰️ Satélites Artificiais</div>
-        <ul class="astro-list">
-            <li class="astro-btn" data-target="iss">Estação Espacial (ISS)</li>
-        </ul>
+    <div id="author-signature">
+        Projeto Pedagógico: <strong>Luiz Miguel N. Cardoso</strong><br>
+        Física UFPA - Campus Abaetetuba
     </div>
-</nav>
+
+    <header class="controls top-controls">
+        <button id="btn-view" class="ui-btn">Visão de Topo</button>
+        <button id="btn-reset" class="ui-btn">Visão Geral</button>
+        <button id="btn-physics" class="ui-btn highlight-btn">🌌 Física do Espaço</button>
+        <button id="btn-toggle-galaxy" class="ui-btn galaxy-btn">Via-Láctea: OFF</button>
+    </header>
+
+    <nav id="astro-menu" aria-label="Navegação do Sistema Solar">
+        <h3>Catálogo Cósmico</h3>
+        <div class="menu-scroll">
+            <div class="menu-category">Estrela</div>
+            <ul class="astro-list">
+                <li class="astro-btn" data-target="sun">☀️ Sol</li>
+            </ul>
+
+            <div class="menu-category">Planetas Rochosos</div>
+            <ul class="astro-list">
+                <li class="astro-btn" data-target="mercury">🪨 Mercúrio</li>
+                <li class="astro-btn" data-target="venus">🪐 Vênus</li>
+                <li class="astro-btn" data-target="earth">🌍 Terra</li>
+                <li class="astro-btn" data-target="mars">🔴 Marte</li>
+            </ul>
+
+            <div class="menu-category">Gigantes Gasosos / Gelo</div>
+            <ul class="astro-list">
+                <li class="astro-btn" data-target="jupiter">🪐 Júpiter</li>
+                <li class="astro-btn" data-target="saturn">🪐 Saturno</li>
+                <li class="astro-btn" data-target="uranus">💎 Urano</li>
+                <li class="astro-btn" data-target="neptune">🔵 Netuno</li>
+            </ul>
+
+            <div class="menu-category">Satélites Naturais</div>
+            <ul class="astro-list">
+                <li class="astro-btn" data-target="moon">🌑 Lua (Terra)</li>
+                <li class="astro-btn" data-target="phobos">🌑 Fobos (Marte)</li>
+                <li class="astro-btn" data-target="europa">❄️ Europa (Júpiter)</li>
+                <li class="astro-btn" data-target="titan">☁️ Titã (Saturno)</li>
+            </ul>
+
+            <div class="menu-category">Satélites Artificiais</div>
+            <ul class="astro-list">
+                <li class="astro-btn" data-target="iss">🛰️ Estação Espacial (ISS)</li>
+            </ul>
+        </div>
+    </nav>
+
+    <footer class="controls bottom-controls">
+        <div class="control-group">
+            <button id="btn-toggle-planets" class="ui-btn active">Planetas: ON</button>
+            <button id="btn-toggle-moons" class="ui-btn active">Luas: ON</button>
+            <button id="btn-toggle-iss" class="ui-btn active">ISS: ON</button>
+        </div>
+    </footer>
+
+    <aside id="info-panel" aria-live="polite">
+        <button id="close-panel" class="close-btn" Skinner-label="Fechar Painel">&times;</button>
+        <h2 id="planet-name">Astro</h2>
+        <div class="info-content">
+            <p><strong>Classificação:</strong> <span id="planet-type"></span></p>
+            <p><strong>Distância do Sol:</strong> <span id="planet-dist"></span></p>
+            <p><strong>Diâmetro Equatorial:</strong> <span id="planet-size"></span></p>
+            <p><strong>Atmosfera:</strong> <span id="planet-atm"></span></p>
+            <p><strong>Temperatura Média:</strong> <span id="planet-temp"></span></p>
+        </div>
+        <div class="curiosity">
+            <strong>Fato Didático/Curiosidade:</strong><br>
+            <span id="planet-fact"></span>
+        </div>
+    </aside>
+
+    <div id="physics-modal" class="hidden" role="dialog" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <button id="close-physics" class="close-btn">&times;</button>
+            <h2 id="modal-title">Explorando a Física no Espaço</h2>
+            
+            <div class="topic">
+                <h3>Escala Didática Otimizada</h3>
+                <p>Para fins pedagógicos, esta simulação adota uma proporcionalidade mista. Reduzimos o diâmetro massivo do Sol e distanciamos as órbitas de forma semi-proporcional para viabilizar a navegação em telas digitais. Contudo, as magnitudes relativas originais (ex: Júpiter sendo o maior planeta do sistema) são preservadas.</p>
+            </div>
+
+            <div class="topic">
+                <h3>Mecânica Orbital e Microgravidade (ISS)</h3>
+                <p>A ISS desloca-se em Movimento Uniforme a aproximadamente 28.000 km/h a 400 km de altitude. Os astronautas flutuam não por ausência de gravidade (que lá corresponde a cerca de 90% da terrestre), mas porque a estação encontra-se em um estado de <strong>queda livre perpétua</strong> e controlada ao redor da curvatura da Terra.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
