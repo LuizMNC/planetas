@@ -1,70 +1,64 @@
 /**
- * SIMULADOR ASTROFÍSICO 3D - PIPELINE PBR & ENGINE GRÁFICA OPTIMIZADA
- * Desenvolvido por: Luiz Miguel N. Cardoso (Física UFPA - Campus Abaetetuba)
- * * Técnicas Empregadas:
- * - Shading Fresnel Baseado em Rayleigh para Atmosferas.
- * - PointLight Física com Decaimento Quadrático Inverso.
- * - Sincronia Angular Hierárquica para Acoplamento de Maré (Tidal Locking).
- * - PointerEvents Unificados para Mitigação de Latência em Telas Touch.
+ * SIMULADOR ASTROFÍSICO 3D - ENGINE DE ALTA FIDELIDADE
+ * Desenvolvido sob princípios de Computação Gráfica Avançada e PBR
  */
 
 const textureLoader = new THREE.TextureLoader();
-const clock = new THREE.Clock();
 
-// Banco de Dados Celestial Estruturado
-const issData = { id: 'iss', name: "Estação Espacial (ISS)", type: "Laboratório de Microgravidade", distSol: "400 km da Terra", size: "109 metros", atm: "Vácuo", temp: "-157°C a 121°C", fact: "Orbita a Terra 16 vezes por dia, completando um ciclo orbital a cada 90 minutos em velocidade de queda contínua." };
+// Banco de Dados Celestial - Escala Visual Didática Otimizada
+const issData = { id: 'iss', name: "Estação Espacial", type: "Laboratório Artificial", distSol: "420 km da Terra", size: "109 metros", atm: "Pressurizada (N2/O2)", temp: "-150°C a 120°C", fact: "Viaja a 27.600 km/h, completando uma órbita completa a cada 92 minutos em queda livre estável." };
 
 const celestialData = {
-    sun: { name: "Sol", type: "Estrela (Anã Amarela)", radius: 32.0, dist: 0, speed: 0, color: 0xffaa00, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', data: { distSol: "0 km", size: "1.392.700 km", atm: "Plasma", temp: "~5.500 °C (Superfície)", fact: "Concentra 99,86% de toda a massa do Sistema Solar e funde cerca de 600 milhões de toneladas de hidrogênio por segundo." } },
-    mercury: { name: "Mercúrio", type: "Planeta Rochoso", radius: 1.2, dist: 65, speed: 0.03, color: 0x8c8c8c, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg', data: { distSol: "57,9 Milhões de km", size: "4.879 km", atm: "Exosfera Tênue", temp: "-173°C a 427°C", fact: "Possui a órbita mais excêntrica e rápida, completando seu ano em apenas 88 dias terrestres." } },
-    venus: { name: "Vênus", type: "Planeta Rochoso", radius: 2.0, dist: 100, speed: 0.016, color: 0xe3bb76, textureUrl: null, data: { distSol: "108,2 Milhões de km", size: "12.104 km", atm: "CO2 Extremo (92 atm)", temp: "464 °C (Fixo)", fact: "Devido ao efeito estufa descontrolado em sua atmosfera de dióxido de carbono, é o planeta mais quente do sistema, fundindo chumbo em sua superfície." } },
-    earth: { name: "Terra", type: "Planeta Rochoso", radius: 2.2, dist: 145, speed: 0.01, color: 0x2b65ec, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', hasISS: true, 
-        moons: [ { id: 'moon', name: "Lua", radius: 0.6, dist: 6.0, speed: 0.028, color: 0xaaaaaa, data: { distSol: "149,6 Milhões de km", size: "3.474 km", atm: "Nenhuma", temp: "-173°C a 127°C", fact: "Exibe acoplamento de maré gravitacional com a Terra, mantendo sempre o mesmo hemisfério voltado para nós." } } ],
-        data: { distSol: "149,6 Milhões de km (1 UA)", size: "12.742 km", atm: "Nitrogênio e Oxigênio", temp: "15 °C (Média)", fact: "Único corpo celeste conhecido a abrigar água em estado líquido estável e biosfera ativa na superfície." } },
-    mars: { name: "Marte", type: "Planeta Rochoso", radius: 1.5, dist: 195, speed: 0.008, color: 0xc1440e, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/mars_1k_color.jpg', 
-        moons: [ { id: 'phobos', name: "Fobos", radius: 0.38, dist: 4.2, speed: 0.045, color: 0x887766, data: { distSol: "Órbita Marciana", size: "22 km", atm: "Nenhuma", temp: "-40 °C", fact: "Sua órbita está decaindo em espiral devido às forças de maré e colidirá catastroficamente com Marte no futuro geológico." } } ],
-        data: { distSol: "227,9 Milhões de km", size: "6.779 km", atm: "Dióxido de Carbono (Rara)", temp: "-62 °C", fact: "Abriga o Monte Olimpo, o maior vulcão do Sistema Solar, com três vezes a altitude do Monte Everest." } },
-    jupiter: { name: "Júpiter", type: "Gigante Gasoso", radius: 11.5, dist: 295, speed: 0.0025, color: 0xb07f35, textureUrl: null, 
-        moons: [ { id: 'europa', name: "Europa", radius: 0.7, dist: 18.0, speed: 0.035, color: 0xddeeff, data: { distSol: "Órbita de Júpiter", size: "3.121 km", atm: "Oxigênio Exíguo", temp: "-160 °C", fact: "Sob sua espessa crosta de gelo superficial, oculta um oceano global de água líquida aquecido por forças de maré de Júpiter." } } ],
-        data: { distSol: "778,5 Milhões de km", size: "139.820 km", atm: "Hidrogênio e Hélio", temp: "-108 °C", fact: "Seu volume comporta mais de 1.300 planetas Terra e seu campo magnético é o mais intenso entre os planetas." } },
-    saturn: { name: "Saturno", type: "Gigante Gasoso", radius: 9.5, dist: 415, speed: 0.0011, color: 0xe2bf7d, textureUrl: null, hasRings: true, 
-        moons: [ { id: 'titan', name: "Titã", radius: 0.95, dist: 21.0, speed: 0.018, color: 0xddaa55, data: { distSol: "Órbita de Saturno", size: "5.149 km", atm: "Nitrogênio Denso", temp: "-179 °C", fact: "É o único satélite do sistema dotado de atmosfera densa e ciclos meteorológicos de hidrocarbonetos líquidos (metano)." } } ],
-        data: { distSol: "1,4 Bilhão de km", size: "116.460 km", atm: "Hidrogênio e Hélio", temp: "-139 °C", fact: "Seus complexos anéis são formados por bilhões de partículas de gelo de água pura e poeira cósmica." } },
-    uranus: { name: "Urano", type: "Gigante de Gelo", radius: 5.2, dist: 545, speed: 0.0004, color: 0x71b2c9, textureUrl: null, 
-        data: { distSol: "2,9 Bilhões de km", size: "50.724 km", atm: "Hidrogênio, Hélio e Metano", temp: "-197 °C", fact: "Apresenta uma inclinação axial extrema de 98 graus, orbitando o Sol virtualmente deitado de lado." } },
-    neptune: { name: "Netuno", type: "Gigante de Gelo", radius: 5.0, dist: 665, speed: 0.00018, color: 0x274687, textureUrl: null, 
-        data: { distSol: "4,5 Bilhões de km", size: "49.244 km", atm: "Hidrogênio, Hélio e Metano", temp: "-201 °C", fact: "Registra os ventos mais violentos do Sistema Solar, alcançando velocidades supersônicas de até 2.100 km/h." } }
+    sun: { name: "Sol", type: "Estrela anã amarela (G2V)", radius: 32.0, dist: 0, speed: 0, color: 0xffaa00, textureUrl: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg', data: { distSol: "0 km", size: "1.392.700 km", atm: "Plasma Incandescente", temp: "~5.500 °C (Superfície)", fact: "Concentra 99,86% de toda a massa do Sistema Solar, sustentando a curvatura do espaço-tempo que rege as órbitas." } },
+    mercury: { name: "Mercúrio", type: "Planeta Rochoso", radius: 1.1, dist: 65, speed: 0.03, color: 0x8c8c8c, textureUrl: 'https://unpkg.com/three-globe/example/img/earth-dark.jpg', data: { distSol: "57,9 M km", size: "4.879 km", atm: "Exosfera Tênue", temp: "-173°C a 427°C", fact: "Devido à ausência de atmosfera espessa para retenção térmica, possui a maior amplitude térmica do sistema." } },
+    venus: { name: "Vênus", type: "Planeta Rochoso", radius: 1.9, dist: 100, speed: 0.02, color: #e3bb76, textureUrl: null, data: { distSol: "108,2 M km", size: "12.104 km", atm: "96% Dióxido de Carbono", temp: "464°C", fact: "O efeito estufa descontrolado em sua atmosfera de alta densidade gera pressões equivalentes a 92 vezes a terrestre." } },
+    earth: { name: "Terra", type: "Planeta Rochoso", radius: 2.2, dist: 145, speed: 0.015, color: 0x2b82c9, textureUrl: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_atmos_2048.jpg', normalUrl: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_normal_2048.jpg', specularUrl: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/earth_specular_2048.jpg', hasISS: true, 
+        moons: [ { id: 'moon', name: "Lua", radius: 0.6, dist: 5.5, speed: 0.04, color: 0xb0b0b0, data: { distSol: "149,6 M km", size: "3.474 km", atm: "Inexistente", temp: "-130°C a 120°C", fact: "Apresenta acoplamento de maré perfeito (Tidal Locking), rotacionando em sincronia geométrica exata com sua translação." } } ],
+        data: { distSol: "149,6 M km", size: "12.742 km", atm: "Nitrogênio e Oxigênio", temp: "15°C", fact: "O único corpo celeste conhecido a abrigar água em três estados físicos simultâneos e atividade biológica complexa." } },
+    mars: { name: "Marte", type: "Planeta Rochoso", radius: 1.5, dist: 195, speed: 0.011, color: 0xc1440e, textureUrl: 'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/planets/mars_1k_color.jpg', 
+        moons: [ { id: 'phobos', name: "Fobos", radius: 0.4, dist: 3.8, speed: 0.06, color: 0x7a6b5d, data: { distSol: "227,9 M km", size: "22 km", atm: "Nenhuma", temp: "-40°C", fact: "Orbita Marte abaixo da altitude síncrona; forças de maré gravitacionais estão reduzindo seu raio de órbita continuamente." } } ],
+        data: { distSol: "227,9 M km", size: "6.779 km", atm: "Dióxido de Carbono (Fina)", temp: "-62°C", fact: "Abriga o Monte Olimpo, o maior vulcão em escudo do Sistema Solar, com uma altitude de 21,9 km." } },
+    jupiter: { name: "Júpiter", type: "Gigante Gasoso", radius: 10.5, dist: 290, speed: 0.005, color: 0xb07f35, textureUrl: null, 
+        moons: [ { id: 'europa', name: "Europa", radius: 0.7, dist: 17.0, speed: 0.035, color: 0xe0e0e0, data: { distSol: "778,5 M km", size: "3.121 km", atm: "Oxigênio Tênue", temp: "-160°C", fact: "Sua crosta de gelo global oculta um oceano líquido aquecido por forças de maré geradas pela gravidade jupitariana." } } ],
+        data: { distSol: "778,5 M km", size: "139.820 km", atm: "Hidrogênio e Hélio", temp: "-108°C", fact: "Seu massivo campo magnético gera um cinturão de radiação severo, capturando poeira cósmica e gerando auroras intensas." } },
+    saturn: { name: "Saturno", type: "Gigante Gasoso", radius: 8.5, dist: 410, speed: 0.003, color: 0xe2bf7d, textureUrl: null, hasRings: true, 
+        moons: [ { id: 'titan', name: "Titã", radius: 0.9, dist: 19.5, speed: 0.022, color: 0xdca842, data: { distSol: "1,4 B km", size: "5.149 km", atm: "Nitrogênio Denso", temp: "-179°C", fact: "Único satélite do sistema com uma atmosfera densa e ciclos hidrológicos ativos baseados em metano e etano líquidos." } } ],
+        data: { distSol: "1,4 B km", size: "116.460 km", atm: "Hidrogênio e Hélio", temp: "-139°C", fact: "Seus anéis são compostos por bilhões de partículas de gelo puro e rocha, cujo plano possui menos de 10 metros de espessura vertical." } },
+    uranus: { name: "Gigante de Gelo", radius: 4.8, dist: 540, speed: 0.001, color: 0x71b2c9, textureUrl: null, 
+        data: { distSol: "2,9 B km", size: "50.724 km", atm: "Hidrogênio, Hélio e Metano", temp: "-197°C", fact: "Possui uma obliquidade extrema de 98°, fazendo com que o planeta rotacione praticamente deitado em sua linha de trânsito." } },
+    neptune: { name: "Gigante de Gelo", radius: 4.6, dist: 660, speed: 0.0008, color: 0x274687, textureUrl: null, 
+        data: { distSol: "4,5 B km", size: "49.244 km", atm: "Hidrogênio, Hélio e Metano", temp: "-201°C", fact: "Exibe os ventos mais violentos do Sistema Solar, atingindo velocidades supersônicas de até 2.100 km/h." } }
 };
 
+let scene, camera, renderer, controls, clock;
 let planetsSystem = [];
 let raycasterObjects = [];
-let galaxyMesh = null;
-let starPoints = null;
-
+let galaxyPoints = null;
+let starfieldPoints = null;
 let focusedPlanetMesh = null;
-let previousTargetPos = new THREE.Vector3();
-let targetCamPos = new THREE.Vector3();
+
+// Vetores auxiliares globais (Evita alocação dinâmica de memória no laço de animação - Otimização Mobile)
+const previousTargetPos = new THREE.Vector3();
+const targetCamPos = new THREE.Vector3();
 let isLerpingCamera = false;
 
 let orbitsActive = true;
 let moonsActive = true;
 let issActive = true;
 
-// Compartilhamento de Geometrias de Alta Definição para evitar gargalos de memória Alocada
+// Compartilhamento de Geometria de Alta Densidade (Otimiza VRAM via Instanciação Implícita)
 const sharedSphereGeo = new THREE.SphereGeometry(1, 64, 64);
-const sharedLowPolyGeo = new THREE.SphereGeometry(1, 24, 24);
+const sharedLowPolyGeo = new THREE.SphereGeometry(1, 16, 16);
 const invisibleHitboxMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
-// --- GLSL SHADERS CUSTOMIZADOS PARA PERFORMANCE MULTIPLATAFORMA ---
-
-// Shader Atmosférico Baseado no Efeito Fresnel (Simula Espalhamento de Rayleigh nas bordas)
+// --- GLSL SHADER: ESPALHAMENTO ATMOSFÉRICO (FRESNEL EDGE EFFECT) ---
 const atmosVertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewPosition;
     void main() {
-        vNormal = normalize(normalMatrix * normal);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        vViewPosition = normalize(-mvPosition.xyz);
+        vNormal = normalize(normalMatrix * normal);
+        vViewPosition = -mvPosition.xyz;
         gl_Position = projectionMatrix * mvPosition;
     }
 `;
@@ -74,23 +68,25 @@ const atmosFragmentShader = `
     varying vec3 vViewPosition;
     uniform vec3 uColor;
     void main() {
-        // Equação matemática Fresnel: Intensidade cresce à medida que o vetor normal aproxima-se de 90° da câmera
-        float fresnel = pow(1.0 - max(dot(vNormal, vViewPosition), 0.0), 3.0);
-        gl_FragColor = vec4(uColor, 1.0) * fresnel * 0.8;
+        vec3 normal = normalize(vNormal);
+        vec3 viewDir = normalize(vViewPosition);
+        // Técnica Fresnel: Produto escalar inverso entre a normal geométrica e o vetor de incidência óptica da câmera
+        float intensity = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
+        gl_FragColor = vec4(uColor, 1.0) * intensity;
     }
 `;
 
-// Shader de Partículas de Estrelas Inteligentes (Cintilação controlada via GPU para economizar a CPU de celulares)
+// --- GLSL SHADER: CINTILAÇÃO ESTELAR PROCEDURAL (POINT CLOUD TWINKLING) ---
 const starVertexShader = `
-    attribute float size;
     attribute float aPhase;
+    attribute float aSize;
     varying float vAlpha;
     uniform float uTime;
     void main() {
-        // Oscilação harmônica individual baseada na fase injetada por partícula
-        vAlpha = 0.4 + 0.6 * sin(uTime * 2.0 + aPhase);
+        // Cálculo Harmônico Senoidal Indivualizado por Estrela baseado na fase atribuída na CPU
+        vAlpha = 0.4 + 0.6 * sin(uTime * 2.5 + aPhase * 6.28);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-        gl_PointSize = size * (350.0 / -mvPosition.z);
+        gl_PointSize = aSize * (350.0 / -mvPosition.z); // Atenuação de tamanho proporcional à distância focal
         gl_Position = projectionMatrix * mvPosition;
     }
 `;
@@ -98,50 +94,52 @@ const starVertexShader = `
 const starFragmentShader = `
     varying float vAlpha;
     void main() {
-        // Gera partículas circulares suaves com decaimento alfa radial interno
+        // Formatação circular da partícula via coordenada pontual interna do fragmento
         float dist = distance(gl_PointCoord, vec2(0.5));
         if (dist > 0.5) discard;
-        float intensity = 1.0 - (dist * 2.0);
-        gl_FragColor = vec4(1.0, 1.0, 1.0, intensity * vAlpha);
+        float alphaSmooth = smoothstep(0.5, 0.1, dist) * vAlpha;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, alphaSmooth);
     }
 `;
 
 function init() {
-    const container = document.getElementById('canvas-container');
     scene = new THREE.Scene();
+    clock = new THREE.Clock();
     
-    // Configuração de Câmera com clipping otimizado para o DepthBuffer Logarítmico
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 20000);
-    camera.position.set(0, 350, 600);
+    camera.position.set(0, 400, 700);
 
-    // Instanciação do Renderizador com Tratamento de Tom Cinematográfico PBR
+    // Inicialização da Engine Gráfica Otimizada
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    // Teto anti-aquecimento dinâmico crítico para telas mobile de altíssima densidade de pixels
+    
+    // Ajuste Dinâmico de Pixel Ratio limitado a 2 para evitar thermal throttling em GPUs Mobile
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
+    // Configuração do Pipeline PBR Realista
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
-    container.appendChild(renderer.domElement);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.maxDistance = 8000;
-    controls.minDistance = 0.1;
+    controls.minDistance = 0.5;
 
-    // Configuração de Iluminação Física Linear Correta
-    scene.add(new THREE.AmbientLight(0x0a0a16, 1.2)); // Luz de preenchimento cósmico frio para as sombras
-    
-    // Ponto de luz simulando a emissão real de energia isotropicamente a partir do centro solar
-    const sunLight = new THREE.PointLight(0xffffff, 4.5, 5000, 0.5);
+    // Configuração de Iluminação Física Radiante
+    scene.add(new THREE.AmbientLight(0x0a0a16, 1.2)); // Espectro Cósmico de Fundo (Preenchimento de Sombra)
+    const sunLight = new THREE.PointLight(0xffffff, 4.5, 5000, 0.5); // Luz Central Isotrópica
     scene.add(sunLight);
 
-    // Iteração e Construção Física do Sistema Celular
+    // Construção Procedural do Universo Sistêmico
     Object.keys(celestialData).forEach((key) => {
         const data = celestialData[key];
 
         if (key === 'sun') {
-            // Material auto-emissivo de alta performance para o núcleo da estrela
+            // Material Auto-Emissivo PBR
             const sunMat = new THREE.MeshBasicMaterial({ 
                 color: data.color, 
                 map: textureLoader.load(data.textureUrl) 
@@ -150,16 +148,16 @@ function init() {
             sunMesh.scale.set(data.radius, data.radius, data.radius);
             sunMesh.userData = { id: key, ...data.data, name: data.name, type: data.type, radius: data.radius };
             
-            // Corona Glow via Sprite Additive Blending (Aspecto majestoso estável a 60 FPS)
-            const spriteMat = new THREE.SpriteMaterial({ 
-                map: createSunGlowTexture(), 
+            // Coroa Solar usando Técnica de Gradiente Radial via Sprite
+            const coronaMat = new THREE.SpriteMaterial({ 
+                map: generateCoronaTexture(), 
                 blending: THREE.AdditiveBlending, 
                 transparent: true, 
                 opacity: 0.85 
             });
-            const sunGlow = new THREE.Sprite(spriteMat);
-            sunGlow.scale.set(data.radius * 3.8, data.radius * 3.8, 1);
-            sunMesh.add(sunGlow);
+            const coronaSprite = new THREE.Sprite(coronaMat);
+            coronaSprite.scale.set(data.radius * 3.8, data.radius * 3.8, 1.0);
+            sunMesh.add(coronaSprite);
 
             scene.add(sunMesh);
             raycasterObjects.push(sunMesh);
@@ -167,33 +165,25 @@ function init() {
             return;
         }
 
-        // Grupo Pivô do Sistema de Translação do Planeta
         const planetGroup = new THREE.Group();
         planetGroup.userData.currentAngle = Math.random() * Math.PI * 2;
         planetGroup.userData.speed = data.speed;
         planetGroup.userData.dist = data.dist;
 
-        // Pipeline PBR Avançado Baseado em Rugosidade/Metalicidade Específica por Tipo de Astro
-        let pbrConfig = { roughness: 0.85, metalness: 0.05 }; // Configuração básica rochosa
+        // Parametrização Avançada de Materiais PBR Baseados na Natureza do Astro
+        const pMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.1 });
         
-        if (key === 'earth') {
-            pbrConfig.roughness = 0.45; // Oceanos terrestres recebem maior brilho especular físico
-            pbrConfig.metalness = 0.15;
-            // Injeção de mapas de textura complementares de alta resolução via repositório ThreeJS CDN
-            pbrConfig.map = textureLoader.load(data.textureUrl);
-            pbrConfig.normalMap = textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_normal_2048.jpg');
-        } else if (data.type.includes("Gasoso") || data.type.includes("Gelo")) {
-            pbrConfig.roughness = 0.5; // Gigantes gasosos têm reflexão volumétrica difusa suave
-            pbrConfig.metalness = 0.0;
+        if (data.textureUrl) pMat.map = textureLoader.load(data.textureUrl);
+        if (data.normalUrl) {
+            pMat.normalMap = textureLoader.load(data.normalUrl);
+            pMat.normalScale.set(0.15, 0.15); // Profundidade física micrométrica do relevo
         }
-
-        let pMat = (key === 'earth') 
-            ? new THREE.MeshStandardMaterial(pbrConfig)
-            : new THREE.MeshStandardMaterial({ color: data.color, ...pbrConfig });
-
-        if (data.textureUrl && key !== 'earth') {
-            pMat.map = textureLoader.load(data.textureUrl);
+        if (data.specularUrl) {
+            pMat.roughnessMap = textureLoader.load(data.specularUrl); // Transmuta brilho especular para rugosidade seletiva
+            pMat.metalness = 0.2;
         }
+        if (!data.textureUrl) pMat.color.setHex(data.color);
+        if (data.type.includes("Gasoso")) { pMat.roughness = 0.45; pMat.metalness = 0.05; }
 
         const pMesh = new THREE.Mesh(sharedSphereGeo, pMat);
         pMesh.scale.set(data.radius, data.radius, data.radius);
@@ -201,13 +191,13 @@ function init() {
         raycasterObjects.push(pMesh);
         planetGroup.add(pMesh);
 
-        // Injeção de Atmosferas com Rayleigh Scattering via Fresnel Shaders Customizados
+        // Injeção de Shaders de Atmosfera (Rayleigh Scattering aproximado)
         if (key === 'earth' || key === 'venus') {
-            const atmosphericColor = (key === 'earth') ? new THREE.Color(0x2a7fff) : new THREE.Color(0xe0a060);
+            const colorAtm = key === 'earth' ? new THREE.Color(0x2b82c9) : new THREE.Color(0xe0a96d);
             const atmosMat = new THREE.ShaderMaterial({
                 vertexShader: atmosVertexShader,
                 fragmentShader: atmosFragmentShader,
-                uniforms: { uColor: { value: atmosphericColor } },
+                uniforms: { uColor: { value: colorAtm } },
                 blending: THREE.AdditiveBlending,
                 side: THREE.BackSide,
                 transparent: true
@@ -217,74 +207,70 @@ function init() {
             planetGroup.add(atmosMesh);
         }
 
-        // Anéis de Saturno com renderização dupla de face
+        // Anéis Planetários Estruturados
         if (data.hasRings) {
             const ringGeo = new THREE.RingGeometry(data.radius * 1.4, data.radius * 2.6, 64);
-            const ringMat = new THREE.MeshStandardMaterial({ color: 0xbaa47e, side: THREE.DoubleSide, transparent: true, opacity: 0.65, roughness: 0.6 });
+            // Alinhamento planar UV dos anéis
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfa37a, side: THREE.DoubleSide, transparent: true, opacity: 0.7, roughness: 0.6 });
             const ringMesh = new THREE.Mesh(ringGeo, ringMat);
             ringMesh.rotation.x = Math.PI / 2.3;
             planetGroup.add(ringMesh);
         }
 
-        // Inicialização de Satélites Naturais (Luas)
+        // Processamento Hierárquico de Satélites Naturais (Luas)
         let moonsArr = [];
         if (data.moons) {
             data.moons.forEach(moonData => {
                 const moonPivot = new THREE.Group();
-                const moonMat = new THREE.MeshStandardMaterial({ color: moonData.color, roughness: 0.95, metalness: 0.0 });
-                if (moonData.id === 'moon') moonMat.map = textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg');
-                
-                const moonMesh = new THREE.Mesh(sharedLowPolyGeo, moonMat);
+                const mMat = new THREE.MeshStandardMaterial({ color: moonData.color, roughness: 0.9, metalness: 0.0 });
+                const moonMesh = new THREE.Mesh(sharedLowPolyGeo, mMat);
                 moonMesh.scale.set(moonData.radius, moonData.radius, moonData.radius);
                 moonMesh.position.set(moonData.dist, 0, 0);
 
-                // Hitbox expandida para usabilidade em telas sensíveis ao toque (Mobile UX)
+                // Caixa de Colisão Geométrica Ampliada Invisível para Ergonometria de Toque Móbile
                 const moonHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
-                moonHitbox.scale.set(moonData.radius * 3.8, moonData.radius * 3.8, moonData.radius * 3.8);
+                moonHitbox.scale.set(moonData.radius * 3.5, moonData.radius * 3.5, moonData.radius * 3.5);
                 moonHitbox.position.copy(moonMesh.position);
                 moonHitbox.userData = { id: moonData.id, ...moonData.data, name: moonData.name, type: "Satélite Natural", radius: moonData.radius };
                 
-                moonPivot.add(moonMesh); 
-                moonPivot.add(moonHitbox);
-                raycasterObjects.push(moonHitbox); 
+                moonPivot.add(moonMesh, moonHitbox);
+                raycasterObjects.push(moonHitbox);
                 planetGroup.add(moonPivot);
                 
+                // Rotação Síncrona Implícita: Não rotacionar a malha localmente força o bloqueio gravitacional de maré
                 moonsArr.push({ pivot: moonPivot, mesh: moonMesh, speed: moonData.speed });
             });
         }
 
-        // Inicialização de Satélites Artificiais (ISS)
+        // Integração Cinemática Aeroespacial da ISS
         let issPivot;
         if (data.hasISS) {
             issPivot = new THREE.Group();
-            const sScale = 0.04;
+            const scaleISS = 0.04;
             
-            // Alumínio espacial altamente polido e reflexivo (PBR Extremo)
-            const aerospaceMetalMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.08 });
-            const solarPanelMat = new THREE.MeshStandardMaterial({ color: 0x0a1c42, metalness: 0.9, roughness: 0.15, side: THREE.DoubleSide });
+            // Alumínio Anodizado Espacial PBR
+            const metalSpaceMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 1.0, roughness: 0.15 });
+            const solarPanelMat = new THREE.MeshStandardMaterial({ color: 0x0a2342, metalness: 0.8, roughness: 0.2, side: THREE.DoubleSide });
 
-            const structuralCore = new THREE.Mesh(new THREE.CylinderGeometry(sScale*0.7, sScale*0.7, sScale*4.5, 8), aerospaceMetalMat);
-            structuralCore.rotation.x = Math.PI / 2;
+            const coreMesh = new THREE.Mesh(new THREE.CylinderGeometry(scaleISS, scaleISS, scaleISS * 4, 8), metalSpaceMat);
+            coreMesh.rotation.x = Math.PI / 2;
             
-            const p1 = new THREE.Mesh(new THREE.BoxGeometry(sScale*7, sScale*0.15, sScale*1.8), solarPanelMat); 
-            p1.position.z = sScale * 1.6;
-            const p2 = new THREE.Mesh(new THREE.BoxGeometry(sScale*7, sScale*0.15, sScale*1.8), solarPanelMat); 
-            p2.position.z = -sScale * 1.6;
+            const panel1 = new THREE.Mesh(new THREE.BoxGeometry(scaleISS * 7, scaleISS * 0.1, scaleISS * 1.8), solarPanelMat);
+            panel1.position.z = scaleISS * 1.6;
+            const panel2 = panel1.clone();
+            panel2.position.z = -(scaleISS * 1.6);
 
-            issPivot.add(structuralCore); 
-            issPivot.add(p1); 
-            issPivot.add(p2);
-            issPivot.position.set(data.radius + 0.8, 0.2, 0);
+            issPivot.add(coreMesh, panel1, panel2);
+            issPivot.position.set(data.radius + 0.6, 0, 0);
 
             const issHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
-            issHitbox.scale.set(0.65, 0.65, 0.65);
+            issHitbox.scale.set(0.6, 0.6, 0.6);
             issHitbox.position.copy(issPivot.position);
-            issHitbox.userData = { id: 'iss', ...issData, radius: sScale * 3.5 };
-            
+            issHitbox.userData = { id: 'iss', ...issData, radius: scaleISS * 3 };
+
             const issRotator = new THREE.Group();
-            issRotator.add(issPivot); 
-            issRotator.add(issHitbox);
-            raycasterObjects.push(issHitbox); 
+            issRotator.add(issPivot, issHitbox);
+            raycasterObjects.push(issHitbox);
             planetGroup.add(issRotator);
             issPivot = issRotator;
         }
@@ -294,58 +280,66 @@ function init() {
         planetsSystem.push({ isSun: false, group: planetGroup, pMesh: pMesh, moonsArr: moonsArr, issPivot: issPivot });
     });
 
-    createStarfield();
-    createMilkyWay();
-    setupUnifiedInteractivity();
-    setupUIControls();
-    
+    createDynamicStarfield();
+    createProceduralMilkyWay();
+    connectUserInterface();
+
+    // Sistema Avançado de Input Híbrido Unificado (Mouse + Touch)
+    let touchStartPos = new THREE.Vector2();
+    renderer.domElement.addEventListener('pointerdown', (e) => touchStartPos.set(e.clientX, e.clientY));
+    renderer.domElement.addEventListener('pointerup', (e) => {
+        // Filtro Vetorial: Só dispara a seleção se a distância do toque for ínfima (Distancia arrasto vs clique)
+        const distClick = touchStartPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY));
+        if (distClick < 4) executeRaycastSelect(e);
+    });
+
     window.addEventListener('resize', onWindowResize);
 }
 
-// Geração Procedural da Textura de Brilho da Estrela
-function createSunGlowTexture() {
+// Geração Dinâmica da Textura da Coroa por Injeção de Buffer em Canvas
+function generateCoronaTexture() {
     const canvas = document.createElement('canvas');
-    canvas.width = 256; canvas.height = 256;
+    canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(128, 128, 15, 128, 128, 128);
+    const grad = ctx.createRadialGradient(256, 256, 32, 256, 256, 256);
     grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
     grad.addColorStop(0.15, 'rgba(255, 200, 50, 0.8)');
-    grad.addColorStop(0.5, 'rgba(255, 80, 0, 0.25)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    grad.addColorStop(0.45, 'rgba(230, 70, 10, 0.25)');
+    grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
     ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, 256, 256);
+    ctx.fillRect(0, 0, 512, 512);
     return new THREE.CanvasTexture(canvas);
 }
 
-// Criação do Campo Estelar Cintilante de Alto Desempenho (GPU Instanced Shading)
-function createStarfield() {
+// Campo Estelar Cintilante de Baixo Custo de GPU via Shaders Customizados
+function createDynamicStarfield() {
     const isMobile = window.innerWidth < 768;
-    const totalStars = isMobile ? 2000 : 4500;
+    const countStars = isMobile ? 2000 : 5000;
     
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(totalStars * 3);
-    const phases = new Float32Array(totalStars);
-    const sizes = new Float32Array(totalStars);
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(countStars * 3);
+    const phases = new Float32Array(countStars);
+    const sizes = new Float32Array(countStars);
 
-    for (let i = 0; i < totalStars; i++) {
-        // Distribuição geométrica esférica uniforme de raio ultra-amplo para gerar profundidade linear
-        const radius = 2000 + Math.random() * 3000;
-        const u = Math.random(), v = Math.random();
-        const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
-        
-        positions[i*3] = radius * Math.sin(phi) * Math.cos(theta); 
-        positions[i*3+1] = radius * Math.sin(phi) * Math.sin(theta); 
-        positions[i*3+2] = radius * Math.cos(phi);
-        
-        phases[i] = Math.random() * Math.PI * 2; // Fase inicial randômica para dessincronizar a cintilação
-        sizes[i] = Math.random() * 2.2 + 0.6;
+    for(let i = 0; i < countStars; i++) {
+        // Distribuição Esférica Aleatória Uniforme no Espaço Distante
+        const r = 2500 + Math.random() * 3500;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+
+        positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+        positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+        positions[i*3+2] = r * Math.cos(phi);
+
+        phases[i] = Math.random();
+        sizes[i] = Math.random() * 2.2 + 0.8;
     }
-    
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
-    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
 
-    const starShaderMat = new THREE.ShaderMaterial({
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
+    geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const starMat = new THREE.ShaderMaterial({
         vertexShader: starVertexShader,
         fragmentShader: starFragmentShader,
         uniforms: { uTime: { value: 0.0 } },
@@ -354,114 +348,87 @@ function createStarfield() {
         blending: THREE.AdditiveBlending
     });
 
-    starPoints = new THREE.Points(geometry, starShaderMat);
-    scene.add(starPoints);
+    starfieldPoints = new THREE.Points(geo, starMat);
+    scene.add(starfieldPoints);
 }
 
-// Geração Procedural da Via-Láctea (Nuvens e Poeira Estelar por Variação de Luminância)
-function createMilkyWay() {
+// Via Láctea Estruturada por Adensamento Probabilístico Diferencial (Poeira Interestelar)
+function createProceduralMilkyWay() {
     const isMobile = window.innerWidth < 768;
-    const numParticles = isMobile ? 30000 : 70000;
+    const countParticles = isMobile ? 30000 : 75000;
 
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(numParticles * 3);
-    const colors = new Float32Array(numParticles * 3);
-    
-    const coreColor = new THREE.Color(0xffdcb0);
-    const armColor = new THREE.Color(0x1a2e7b);
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(countParticles * 3);
+    const colors = new Float32Array(countParticles * 3);
 
-    for(let i = 0; i < numParticles; i++) {
+    const innerColor = new THREE.Color(0xffcca3);
+    const outerColor = new THREE.Color(0x0e173d);
+
+    for(let i = 0; i < countParticles; i++) {
         const idx = i * 3;
-        const radius = Math.random() * 6500;
-        const spinAngle = radius * 4.2 / 6500;
-        const branchAngle = (i % 5) * ((Math.PI * 2.0) / 5.0); // Estrutura em espiral de 5 braços galácticos
+        const rad = Math.random() * 7000;
+        const angleSpin = rad * 4.5 / 7000;
+        const armAngle = (i % 5) * ((Math.PI * 2) / 5);
 
-        // Modelagem estocástica de dispersão estrutural (Simulação matemática de densidade de gás)
-        const dX = Math.pow(Math.random(), 3.0) * (Math.random() < 0.5 ? 1 : -1) * 350 * (6500/radius);
-        const dY = Math.pow(Math.random(), 3.0) * (Math.random() < 0.5 ? 1 : -1) * 250 * (1.0 - radius/6500);
-        const dZ = Math.pow(Math.random(), 3.0) * (Math.random() < 0.5 ? 1 : -1) * 350 * (6500/radius);
+        // Dispersão Não-Linear Estocástica para simular nuvens moleculares de poeira escura
+        const dev = 350 * (7000 / (rad + 500));
+        const sX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * dev;
+        const sY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 250 * (1.0 - rad/7000);
+        const sZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * dev;
 
-        positions[idx] = Math.cos(branchAngle + spinAngle) * radius + dX;
-        positions[idx + 1] = dY - 900; // Deslocamento no eixo Y para criar angulação de fundo plano
-        positions[idx + 2] = Math.sin(branchAngle + spinAngle) * radius + dZ;
+        positions[idx] = Math.cos(armAngle + angleSpin) * rad + sX;
+        positions[idx+1] = sY - 900; // Deslocamento planar da galáxia de fundo
+        positions[idx+2] = Math.sin(armAngle + angleSpin) * rad + sZ;
 
-        const lerpColor = coreColor.clone().lerp(armColor, radius / 6500);
-        // Polimento Visual: Variação pseudo-randômica de intensidade simula densas nuvens de poeira cósmica escura
-        const dustObscuration = Math.random() * 0.85 + 0.15; 
+        const mixCol = innerColor.clone().lerp(outerColor, rad / 7000);
         
-        colors[idx] = lerpColor.r * dustObscuration; 
-        colors[idx + 1] = lerpColor.g * dustObscuration; 
-        colors[idx + 2] = lerpColor.b * dustObscuration;
+        // Polimento de opacidade: Fator multiplicativo caótico de atenuação luminosa
+        const dustDensity = Math.random() * 0.85 + 0.15;
+        colors[idx] = mixCol.r * dustDensity;
+        colors[idx+1] = mixCol.g * dustDensity;
+        colors[idx+2] = mixCol.b * dustDensity;
     }
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const mat = new THREE.PointsMaterial({ 
-        size: isMobile ? 14 : 9, 
-        sizeAttenuation: true, 
-        depthWrite: false, 
-        blending: THREE.AdditiveBlending, 
-        vertexColors: true, 
-        transparent: true, 
-        opacity: 0.55 
+    const mWayMat = new THREE.PointsMaterial({
+        size: isMobile ? 14 : 9,
+        sizeAttenuation: true,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
     });
-    
-    galaxyMesh = new THREE.Points(geometry, mat);
-    galaxyMesh.visible = false;
-    scene.add(galaxyMesh);
+
+    galaxyPoints = new THREE.Points(geo, mWayMat);
+    galaxyPoints.visible = false;
+    scene.add(galaxyPoints);
 }
 
 function createOrbitLine(radius) {
-    if(radius === 0) return;
-    const points = [];
-    for (let i = 0; i <= 180; i++) points.push(new THREE.Vector3(Math.cos(i/180 * Math.PI * 2.0) * radius, 0, Math.sin(i/180 * Math.PI * 2.0) * radius));
-    const geo = new THREE.BufferGeometry().setFromPoints(points);
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x4da6ff, transparent: true, opacity: 0.12 });
-    scene.add(new THREE.Line(geo, lineMat));
+    if (radius === 0) return;
+    const pts = [];
+    for(let i = 0; i <= 180; i++) pts.push(new THREE.Vector3(Math.cos(i/180 * Math.PI * 2) * radius, 0, Math.sin(i/180 * Math.PI * 2) * radius));
+    const lineGeo = new THREE.BufferGeometry().setFromPoints(pts);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x3a86ff, transparent: true, opacity: 0.08 });
+    scene.add(new THREE.Line(lineGeo, lineMat));
 }
 
-// --- INTEGRAÇÃO DE INTERATIVIDADE HÍBRIDA UNIFICADA (MOUSE + TOUCH) ---
-function setupUnifiedInteractivity() {
-    const element = renderer.domElement;
-    let pointerDownPosition = new THREE.Vector2();
-
-    // Eventos Pointer unificam cliques de mouse e eventos de toque nativos, mitigando lag de resposta
-    element.addEventListener('pointerdown', (e) => {
-        pointerDownPosition.set(e.clientX, e.clientY);
-    });
-
-    element.addEventListener('pointerup', (e) => {
-        // Tolerância de arrasto em pixels para diferenciar rotação intencional de órbita vs clique direto
-        const clickTolerance = 4;
-        if (pointerDownPosition.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) < clickTolerance) {
-            executeRaycast(e);
-        }
-    });
-
-    // Mapeamento imediato do Menu de Navegação Universal HTML
-    document.querySelectorAll('.astro-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const targetId = e.currentTarget.getAttribute('data-target');
-            const targetObject = raycasterObjects.find(obj => obj.userData.id === targetId);
-            if (targetObject) focusAstro(targetObject);
-            
-            // Retrai a gaveta no mobile após a seleção para liberar espaço visual na viewport
-            if (window.innerWidth < 768) {
-                document.getElementById('info-panel').classList.remove('visible');
-            }
-        });
-    });
-}
-
-function executeRaycast(event) {
+// Interatividade Unificada do Raycaster Híbrido
+function executeRaycastSelect(event) {
     if (event.target.tagName === 'BUTTON' || event.target.closest('#info-panel') || event.target.closest('#physics-modal') || event.target.closest('#astro-menu')) return;
 
-    const mouse = new THREE.Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse, camera);
+    const mouseCoords = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+    );
 
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouseCoords, camera);
     const intersects = raycaster.intersectObjects(raycasterObjects);
+
     if (intersects.length > 0) {
         focusAstro(intersects[0].object);
     }
@@ -478,12 +445,12 @@ function focusAstro(mesh) {
     focusedPlanetMesh.getWorldPosition(previousTargetPos);
     
     const r = info.radius || 1;
-    targetCamPos.copy(previousTargetPos).add(new THREE.Vector3(r * 3.2, r * 1.6, r * 4.2));
+    targetCamPos.copy(previousTargetPos).add(new THREE.Vector3(r * 2.8, r * 1.2, r * 3.6));
     
     isLerpingCamera = true;
     controls.enabled = false; 
 
-    // Atualização Semântica do Painel Informativo da Interface (UI)
+    // Atualização da UI Semântica HTML
     document.getElementById('planet-name').textContent = info.name;
     document.getElementById('planet-type').textContent = info.type;
     document.getElementById('planet-dist').textContent = info.distSol;
@@ -491,80 +458,126 @@ function focusAstro(mesh) {
     document.getElementById('planet-atm').textContent = info.atm;
     document.getElementById('planet-temp').textContent = info.temp;
     document.getElementById('planet-fact').textContent = info.fact;
-    document.getElementById('info-panel').classList.add('visible');
+    
+    const panel = document.getElementById('info-panel');
+    panel.classList.add('visible');
+    panel.setAttribute('aria-hidden', 'false');
 }
 
 function resetCamera() {
     focusedPlanetMesh = null;
     isLerpingCamera = false;
     controls.enabled = true;
-    camera.position.set(0, 350, 600);
+    camera.position.set(0, 400, 700);
     controls.target.set(0, 0, 0);
-    document.getElementById('info-panel').classList.remove('visible');
+    
+    const panel = document.getElementById('info-panel');
+    panel.classList.remove('visible');
+    panel.setAttribute('aria-hidden', 'true');
 }
 
-// --- LOOP DE ANIMAÇÃO REALTIME DE ALTA PERFORMANCE ---
+function connectUserInterface() {
+    // Vinculação do Menu de Navegação Universal Dinâmico via Atributos de Alvo
+    document.querySelectorAll('.astro-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const targetId = e.target.getAttribute('data-target');
+            const foundMesh = raycasterObjects.find(obj => obj.userData.id === targetId);
+            if (foundMesh) focusAstro(foundMesh);
+        });
+    });
+
+    document.getElementById('close-panel').addEventListener('click', resetCamera);
+    document.getElementById('btn-reset').addEventListener('click', resetCamera);
+    document.getElementById('btn-view').addEventListener('click', () => { 
+        resetCamera(); 
+        camera.position.set(0, 950, 0.1); 
+    });
+
+    const btnG = document.getElementById('btn-toggle-galaxy');
+    btnG.addEventListener('click', () => {
+        galaxyPoints.visible = !galaxyPoints.visible;
+        btnG.classList.toggle('active');
+        btnG.innerText = galaxyPoints.visible ? "Via-Láctea: ON" : "Via-Láctea: OFF";
+        if(galaxyPoints.visible) camera.position.set(0, 1500, 2200);
+    });
+
+    document.getElementById('btn-toggle-planets').addEventListener('click', (e) => { orbitsActive = !orbitsActive; e.target.classList.toggle('active'); });
+    document.getElementById('btn-toggle-moons').addEventListener('click', (e) => { moonsActive = !moonsActive; e.target.classList.toggle('active'); });
+    document.getElementById('btn-toggle-iss').addEventListener('click', (e) => { issActive = !issActive; e.target.classList.toggle('active'); });
+
+    const pModal = document.getElementById('physics-modal');
+    document.getElementById('btn-physics').addEventListener('click', () => pModal.classList.remove('hidden'));
+    document.getElementById('close-physics').addEventListener('click', () => pModal.classList.add('hidden'));
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+}
+
+// Loop de Renderização e Física Cinemática Estabilizada
 function animate() {
     requestAnimationFrame(animate);
-    
-    const dt = clock.getDelta();
+    const deltaSeconds = clock.getDelta();
     const elapsedTime = clock.getElapsedTime();
 
-    // Atualiza o Shader de Cintilação Cósmica na GPU
-    if (starPoints) starPoints.material.uniforms.uTime.value = elapsedTime;
-    if (galaxyMesh && galaxyMesh.visible) galaxyMesh.rotation.y += 0.0002;
+    // Alimentação da variável uniforme de tempo do Shader de Cintilação
+    if (starfieldPoints) starfieldPoints.material.uniforms.uTime.value = elapsedTime;
+    if (galaxyPoints && galaxyPoints.visible) galaxyPoints.rotation.y += 0.0002;
 
     planetsSystem.forEach((sys) => {
         if (sys.isSun) {
             sys.mesh.rotation.y += 0.001;
         } else {
-            sys.pMesh.rotation.y += 0.004; // Rotação intrínseca planetária (dia/noite)
+            sys.pMesh.rotation.y += 0.004; // Rotação sideral intrínseca do planeta
 
-            let isFocusedSystem = false;
+            // Detecção de Foco: Evita deslocamento do sistema sob observação aproximada
+            let systemIsFocused = false;
             if (focusedPlanetMesh) {
-                if (sys.pMesh === focusedPlanetMesh) isFocusedSystem = true;
-                if (sys.issPivot && sys.issPivot.children.includes(focusedPlanetMesh)) isFocusedSystem = true;
-                if (sys.moonsArr.some(m => m.pivot.children.includes(focusedPlanetMesh))) isFocusedSystem = true;
+                if (sys.pMesh === focusedPlanetMesh) systemIsFocused = true;
+                if (sys.issPivot && sys.issPivot.children.includes(focusedPlanetMesh)) systemIsFocused = true;
+                if (sys.moonsArr.some(m => m.pivot.children.includes(focusedPlanetMesh))) systemIsFocused = true;
             }
 
-            // Translação Orbital ativa apenas se o sistema não estiver sob foco de análise microscópica
-            if (orbitsActive && !isFocusedSystem) {
+            // Translação kepleriana orbital em Movimento Uniforme
+            if (orbitsActive && !systemIsFocused) {
                 sys.group.userData.currentAngle += sys.group.userData.speed;
                 sys.group.position.x = Math.cos(sys.group.userData.currentAngle) * sys.group.userData.dist;
                 sys.group.position.z = Math.sin(sys.group.userData.currentAngle) * sys.group.userData.dist;
             }
 
-            // Mecânica Avançada de Acoplamento de Maré (Tidal Locking / Rotação Síncrona)
+            // Mecânica dos Satélites Naturais
             sys.moonsArr.forEach(moon => {
-                if (moonsActive) {
-                    moon.pivot.rotation.y += moon.speed;
-                    // MATEMÁTICA DA SINCRONIA: Mantendo a rotação própria da malha em 0 em relação ao pai,
-                    // a mesma face física estará permanentemente orientada para o vetor central (0,0,0) do planeta.
-                }
+                if (moonsActive) moon.pivot.rotation.y += moon.speed;
             });
 
+            // Órbita da Estação Espacial Artificial
             if (sys.issPivot && issActive) {
-                sys.issPivot.rotation.y += 0.04; // Velocidade angular hiper-rápida simulada da ISS
+                sys.issPivot.rotation.y += 0.045;
+                sys.issPivot.rotation.x += 0.008; // Precessão de inclinação orbital da ISS
             }
         }
     });
 
-    // Interpolação Vetorial Suave (Lerp) de Câmera Cinemática Orbitante
+    // Algoritmo Vetorial LERP de Rastreamento de Câmera Cinemática
     if (focusedPlanetMesh) {
         const currentTargetPos = new THREE.Vector3();
         focusedPlanetMesh.getWorldPosition(currentTargetPos);
-        const deltaMove = new THREE.Vector3().subVectors(currentTargetPos, previousTargetPos);
+        const diffVector = new THREE.Vector3().subVectors(currentTargetPos, previousTargetPos);
 
         if (isLerpingCamera) {
-            targetCamPos.add(deltaMove); 
-            camera.position.lerp(targetCamPos, 0.06); 
-            controls.target.lerp(currentTargetPos, 0.06);
-            if (camera.position.distanceTo(targetCamPos) < 0.15) { 
+            targetCamPos.add(diffVector);
+            camera.position.lerp(targetCamPos, 0.05);
+            controls.target.lerp(currentTargetPos, 0.05);
+            
+            if (camera.position.distanceTo(targetCamPos) < 0.1) { 
                 isLerpingCamera = false; 
                 controls.enabled = true; 
             }
         } else {
-            camera.position.add(deltaMove);
+            camera.position.add(diffVector);
             controls.target.copy(currentTargetPos);
         }
         previousTargetPos.copy(currentTargetPos);
@@ -574,40 +587,6 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-function setupUIControls() {
-    document.getElementById('close-panel').addEventListener('click', () => document.getElementById('info-panel').classList.remove('visible'));
-    document.getElementById('btn-reset').addEventListener('click', resetCamera);
-    document.getElementById('btn-view').addEventListener('click', () => { resetCamera(); camera.position.set(0, 950, 0.1); });
-
-    const btnGalaxy = document.getElementById('btn-toggle-galaxy');
-    btnGalaxy.addEventListener('click', () => {
-        galaxyMesh.visible = !galaxyMesh.visible;
-        btnGalaxy.classList.toggle('active');
-        btnGalaxy.innerText = galaxyMesh.visible ? "Via-Láctea: ON" : "Via-Láctea: OFF";
-        if(galaxyMesh.visible) camera.position.set(0, 1200, 1800);
-    });
-
-    const btnPlanets = document.getElementById('btn-toggle-planets');
-    btnPlanets.addEventListener('click', () => { orbitsActive = !orbitsActive; btnPlanets.classList.toggle('active'); btnPlanets.innerText = orbitsActive ? "Planetas: ON" : "Planetas: OFF"; });
-
-    const btnMoons = document.getElementById('btn-toggle-moons');
-    btnMoons.addEventListener('click', () => { moonsActive = !moonsActive; btnMoons.classList.toggle('active'); btnMoons.innerText = moonsActive ? "Luas: ON" : "Luas: OFF"; });
-
-    const btnIss = document.getElementById('btn-toggle-iss');
-    btnIss.addEventListener('click', () => { issActive = !issActive; btnIss.classList.toggle('active'); btnIss.innerText = issActive ? "ISS: ON" : "ISS: OFF"; });
-
-    const modal = document.getElementById('physics-modal');
-    document.getElementById('btn-physics').addEventListener('click', () => modal.classList.remove('hidden'));
-    document.getElementById('close-physics').addEventListener('click', () => modal.classList.add('hidden'));
-}
-
-// Redimensionamento Dinâmico com recalculamento instantâneo de Viewport Cross-Device
-function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-}
-
-// Inicialização da Engine
+// Inicialização Assíncrona Estabilizada da Engine
 init();
 animate();
