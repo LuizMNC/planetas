@@ -1,64 +1,57 @@
-// --- BANCO DE DADOS CELESTE ---
 const textureLoader = new THREE.TextureLoader();
 
-const issData = { id: 'iss', name: "Estação Espacial Internacional", type: "Laboratório Espacial", distSol: "400 km de Altitude Terrestre", size: "109 metros", atm: "Vácuo", temp: "Varia de -157°C a 121°C", fact: "Completa uma volta na Terra a cada 90 minutos a 28.000 km/h." };
+// --- ESCALA SEMI-PROPORCIONAL DE USABILIDADE ---
+// O Sol foi reduzido (Raio 30) e os planetas rochosos levemente ampliados
+// As distâncias foram espaçadas para melhor clareza visual
+const issData = { id: 'iss', name: "Estação Espacial", type: "Laboratório", distSol: "400 km da Terra", size: "109 metros", atm: "Vácuo", temp: "Variável", fact: "Completa uma volta na Terra a cada 90 minutos." };
 
 const celestialData = {
-    sun: { name: "Sol", type: "Estrela", radius: 109.0, dist: 0, speed: 0, color: 0xffdd00, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', data: { distSol: "0 km", size: "1.392.700 km (Escala Real de Volume)", atm: "Plasma", temp: "5.500°C", fact: "A gravidade esmagadora no núcleo funde hidrogênio em hélio, criando luz." } },
-    mercury: { name: "Mercúrio", type: "Planeta Rochoso", radius: 0.38, dist: 150, speed: 0.04, color: 0x888888, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg', data: { distSol: "57,9 M km", size: "4.879 km", atm: "Exosfera", temp: "-173°C a 427°C", fact: "É o menor planeta do sistema, mas possui o núcleo de ferro mais denso." } },
-    venus: { name: "Vênus", type: "Planeta Rochoso", radius: 0.95, dist: 200, speed: 0.015, color: 0xe3bb76, textureUrl: null, data: { distSol: "108,2 M km", size: "12.104 km", atm: "Dióxido de Carbono Densa", temp: "464°C", fact: "Possui uma pressão atmosférica 90 vezes maior que a da Terra." } },
-    earth: { name: "Terra", type: "Planeta Rochoso", radius: 1.0, dist: 280, speed: 0.01, color: 0x2233ff, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', hasISS: true, 
-        moons: [ { id: 'moon', name: "Lua", radius: 0.27, dist: 15.0, speed: 0.03, color: 0xcccccc, data: { distSol: "384.400 km da Terra", size: "3.474 km", atm: "Nenhuma", temp: "-173 a 127°C", fact: "Sincronia de maré faz com que mostre sempre a mesma face para nós." } } ],
-        data: { distSol: "149,6 M km (1 UA)", size: "12.742 km", atm: "Nitrogênio e Oxigênio", temp: "15°C", fact: "Sua inclinação axial gera as quatro estações climáticas." } },
-    mars: { name: "Marte", type: "Planeta Rochoso", radius: 0.53, dist: 380, speed: 0.008, color: 0xc1440e, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/mars_1k_color.jpg', 
-        moons: [ { id: 'phobos', name: "Fobos", radius: 0.15, dist: 3.0, speed: 0.05, color: 0x887766, data: { distSol: "Órbita marciana", size: "22 km", atm: "Nenhuma", temp: "-40°C", fact: "Orbita tão rápido que nasce no oeste e se põe no leste marciano." } },
-                 { id: 'deimos', name: "Deimos", radius: 0.1, dist: 6.0, speed: 0.03, color: 0x999999, data: { distSol: "Órbita marciana", size: "12 km", atm: "Nenhuma", temp: "-40°C", fact: "Provavelmente é um asteroide capturado pela gravidade do planeta." } } ],
-        data: { distSol: "227,9 M km", size: "6.779 km", atm: "Fina (CO2)", temp: "-62°C", fact: "Sua coloração vem da alta concentração de óxido de ferro." } },
-    jupiter: { name: "Júpiter", type: "Gigante Gasoso", radius: 11.2, dist: 580, speed: 0.002, color: 0xb07f35, textureUrl: null, 
-        moons: [ { id: 'io', name: "Io", radius: 0.28, dist: 16.0, speed: 0.06, color: 0xffffaa, data: { distSol: "Órbita jupiteriana", size: "3.642 km", atm: "Enxofre", temp: "-130°C", fact: "Vulcanismo intenso causado pela gigantesca força de maré de Júpiter." } },
-                 { id: 'europa', name: "Europa", radius: 0.24, dist: 20.0, speed: 0.04, color: 0xffffff, data: { distSol: "Órbita jupiteriana", size: "3.121 km", atm: "Oxigênio", temp: "-160°C", fact: "Sob sua crosta de gelo existe um imenso oceano líquido." } } ],
-        data: { distSol: "778,5 M km", size: "139.820 km", atm: "Hidrogênio e Hélio", temp: "-108°C", fact: "Tem volume suficiente para engolir 1.300 Terras de uma vez." } },
-    saturn: { name: "Saturno", type: "Gigante Gasoso", radius: 9.4, dist: 850, speed: 0.0009, color: 0xe2bf7d, textureUrl: null, hasRings: true, 
-        moons: [ { id: 'titan', name: "Titã", radius: 0.4, dist: 22.0, speed: 0.02, color: 0xddaa55, data: { distSol: "Órbita saturniana", size: "5.149 km", atm: "Nitrogênio espesso", temp: "-179°C", fact: "A atmosfera é tão espessa que a pressão na superfície é maior que na Terra." } } ],
-        data: { distSol: "1,4 B km", size: "116.460 km", atm: "Hidrogênio e Hélio", temp: "-139°C", fact: "O sistema de anéis cobre uma área gigantesca, mas tem apenas 10m de espessura." } },
-    uranus: { name: "Urano", type: "Gigante de Gelo", radius: 4.0, dist: 1200, speed: 0.0004, color: 0x71b2c9, textureUrl: null, 
-        data: { distSol: "2,9 B km", size: "50.724 km", atm: "Metano, Hidrogênio", temp: "-197°C", fact: "Seu núcleo de gelo o torna o planeta mais frio fisicamente documentado." } },
-    neptune: { name: "Netuno", type: "Gigante de Gelo", radius: 3.9, dist: 1550, speed: 0.0001, color: 0x274687, textureUrl: null, 
-        moons: [ { id: 'triton', name: "Tritão", radius: 0.21, dist: 12.0, speed: 0.02, color: 0xbbbbbb, data: { distSol: "Órbita netuniana", size: "2.706 km", atm: "Nitrogênio", temp: "-235°C", fact: "Possui gêiseres criovulcânicos que cospem nitrogênio líquido." } } ],
-        data: { distSol: "4,5 B km", size: "49.244 km", atm: "Metano, Hidrogênio", temp: "-201°C", fact: "Ventos em Netuno quebram a barreira do som no padrão da Terra." } }
+    sun: { name: "Sol", type: "Estrela", radius: 30.0, dist: 0, speed: 0, color: 0xffdd00, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', data: { distSol: "0 km", size: "1.392.700 km", atm: "Plasma", temp: "5.500°C", fact: "Responsável por 99,86% da massa do Sistema Solar." } },
+    mercury: { name: "Mercúrio", type: "Planeta Rochoso", radius: 1.0, dist: 60, speed: 0.04, color: 0x888888, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg', data: { distSol: "57,9 M km", size: "4.879 km", atm: "Exosfera", temp: "-173°C a 427°C", fact: "É o planeta mais rápido, orbitando o Sol em apenas 88 dias." } },
+    venus: { name: "Vênus", type: "Planeta Rochoso", radius: 1.8, dist: 95, speed: 0.015, color: 0xe3bb76, textureUrl: null, data: { distSol: "108,2 M km", size: "12.104 km", atm: "Dióxido de Carbono", temp: "464°C", fact: "Seu efeito estufa é tão forte que derrete chumbo na superfície." } },
+    earth: { name: "Terra", type: "Planeta Rochoso", radius: 2.0, dist: 135, speed: 0.01, color: 0x2233ff, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', hasISS: true, 
+        moons: [ { id: 'moon', name: "Lua", radius: 0.6, dist: 5.0, speed: 0.03, color: 0xcccccc, data: { distSol: "384.400 km da Terra", size: "3.474 km", atm: "Nenhuma", temp: "-173 a 127°C", fact: "A gravidade lunar é a principal causadora das marés nos oceanos." } } ],
+        data: { distSol: "149,6 M km", size: "12.742 km", atm: "Nitrogênio e Oxigênio", temp: "15°C", fact: "Único lugar no universo onde sabemos haver vida." } },
+    mars: { name: "Marte", type: "Planeta Rochoso", radius: 1.4, dist: 180, speed: 0.008, color: 0xc1440e, textureUrl: 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/mars_1k_color.jpg', 
+        moons: [ { id: 'phobos', name: "Fobos", radius: 0.4, dist: 3.5, speed: 0.05, color: 0x887766, data: { distSol: "Órbita marciana", size: "22 km", atm: "Nenhuma", temp: "-40°C", fact: "Fobos está se aproximando de Marte e acabará colidindo com ele." } } ],
+        data: { distSol: "227,9 M km", size: "6.779 km", atm: "Fina (CO2)", temp: "-62°C", fact: "Apresenta a maior montanha do Sistema Solar, o Monte Olimpo." } },
+    jupiter: { name: "Júpiter", type: "Gigante Gasoso", radius: 11.0, dist: 280, speed: 0.002, color: 0xb07f35, textureUrl: null, 
+        moons: [ { id: 'europa', name: "Europa", radius: 0.8, dist: 16.0, speed: 0.04, color: 0xffffff, data: { distSol: "Órbita jupiteriana", size: "3.121 km", atm: "Oxigênio", temp: "-160°C", fact: "Esconde um imenso oceano de água líquida sob sua crosta de gelo." } } ],
+        data: { distSol: "778,5 M km", size: "139.820 km", atm: "Hidrogênio e Hélio", temp: "-108°C", fact: "É tão imenso que caberiam mais de 1.300 Terras dentro dele." } },
+    saturn: { name: "Saturno", type: "Gigante Gasoso", radius: 9.0, dist: 400, speed: 0.0009, color: 0xe2bf7d, textureUrl: null, hasRings: true, 
+        moons: [ { id: 'titan', name: "Titã", radius: 0.9, dist: 18.0, speed: 0.02, color: 0xddaa55, data: { distSol: "Órbita saturniana", size: "5.149 km", atm: "Nitrogênio espesso", temp: "-179°C", fact: "Única lua com nuvens e rios (embora de metano líquido)." } } ],
+        data: { distSol: "1,4 B km", size: "116.460 km", atm: "Hidrogênio e Hélio", temp: "-139°C", fact: "Possui os anéis mais complexos e brilhantes já observados." } },
+    uranus: { name: "Urano", type: "Gigante de Gelo", radius: 5.0, dist: 530, speed: 0.0004, color: 0x71b2c9, textureUrl: null, 
+        data: { distSol: "2,9 B km", size: "50.724 km", atm: "Metano, Hidrogênio", temp: "-197°C", fact: "Seu eixo de rotação é inclinado em 98 graus, orbitando 'deitado'." } },
+    neptune: { name: "Netuno", type: "Gigante de Gelo", radius: 4.8, dist: 650, speed: 0.0001, color: 0x274687, textureUrl: null, 
+        data: { distSol: "4,5 B km", size: "49.244 km", atm: "Metano, Hidrogênio", temp: "-201°C", fact: "Possui ventos extremamente violentos que quebram a barreira do som." } }
 };
 
-// --- VARIÁVEIS GLOBAIS ---
 let scene, camera, renderer, controls;
 let planetsSystem = [];
 let raycasterObjects = [];
 let galaxyMesh = null;
 
-// Controle de Foco
 let focusedPlanetMesh = null;
 let previousTargetPos = new THREE.Vector3();
 let targetCamPos = new THREE.Vector3();
 let isLerpingCamera = false;
 
-// Cinemática
 let orbitsActive = true;
 let moonsActive = true;
 let issActive = true;
 
-// OTIMIZAÇÃO: Geometrias globais instanciadas apenas uma vez na VRAM
-const sharedSphereGeo = new THREE.SphereGeometry(1, 48, 48); // Alta resolução para astros maiores
-const sharedLowPolyGeo = new THREE.SphereGeometry(1, 16, 16); // Baixa resolução para satélites e luas
-
-// OTIMIZAÇÃO: Material invisível que não quebra o motor de raycaster
+const sharedSphereGeo = new THREE.SphereGeometry(1, 48, 48);
+const sharedLowPolyGeo = new THREE.SphereGeometry(1, 16, 16);
 const invisibleHitboxMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
 function init() {
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 15000);
-    camera.position.set(0, 400, 700);
+    camera.position.set(0, 300, 500);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
+    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.getElementById('canvas-container').appendChild(renderer.domElement);
@@ -71,15 +64,13 @@ function init() {
     scene.add(new THREE.AmbientLight(0x444444));
     scene.add(new THREE.PointLight(0xffffff, 3.5, 3000));
 
-    // Construção do Sistema Solar
     Object.keys(celestialData).forEach((key) => {
         const data = celestialData[key];
 
-        // Sol
         if (key === 'sun') {
             const sunMat = new THREE.MeshBasicMaterial({ color: data.color });
             const sunMesh = new THREE.Mesh(sharedSphereGeo, sunMat);
-            sunMesh.scale.set(data.radius, data.radius, data.radius); // Aplica a escala sobre a geometria base
+            sunMesh.scale.set(data.radius, data.radius, data.radius);
             sunMesh.userData = { id: key, ...data.data, name: data.name, type: data.type, radius: data.radius };
             scene.add(sunMesh);
             raycasterObjects.push(sunMesh);
@@ -100,7 +91,6 @@ function init() {
         planetGroup.add(pMesh);
 
         if (data.hasRings) {
-            // OTIMIZAÇÃO: Segmentos reduzidos de 128 para 64 sem perda visual
             const ringMesh = new THREE.Mesh(new THREE.RingGeometry(data.radius * 1.5, data.radius * 2.8, 64), new THREE.MeshStandardMaterial({ color: 0xbf9b65, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
             ringMesh.rotation.x = Math.PI / 2.5;
             planetGroup.add(ringMesh);
@@ -115,7 +105,7 @@ function init() {
                 moonMesh.position.set(moonData.dist, 0, 0);
 
                 const moonHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
-                moonHitbox.scale.set(moonData.radius * 6, moonData.radius * 6, moonData.radius * 6); // Hitbox bem maior para cliques precisos
+                moonHitbox.scale.set(moonData.radius * 4, moonData.radius * 4, moonData.radius * 4);
                 moonHitbox.position.copy(moonMesh.position);
                 moonHitbox.userData = { ...moonData.data, name: moonData.name, type: "Satélite Natural", radius: moonData.radius };
                 
@@ -128,21 +118,20 @@ function init() {
         let issPivot;
         if (data.hasISS) {
             issPivot = new THREE.Group();
-            
-            const issScale = 0.02;
+            const issScale = 0.05;
             const core = new THREE.Mesh(new THREE.CylinderGeometry(issScale*0.8, issScale*0.8, issScale*4, 8), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
             core.rotation.x = Math.PI / 2;
             const panelMat = new THREE.MeshStandardMaterial({ color: 0x2244bb, side: THREE.DoubleSide });
             const p1 = new THREE.Mesh(new THREE.BoxGeometry(issScale*6, issScale*0.2, issScale*1.5), panelMat); p1.position.z = issScale*1.5;
             const p2 = new THREE.Mesh(new THREE.BoxGeometry(issScale*6, issScale*0.2, issScale*1.5), panelMat); p2.position.z = -issScale*1.5;
-            
             issPivot.add(core); issPivot.add(p1); issPivot.add(p2);
-            issPivot.position.set(data.radius + 0.05, 0, 0);
+            
+            issPivot.position.set(data.radius + 0.5, 0, 0); // Distanciado para ser facilmente visível
 
             const issHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
-            issHitbox.scale.set(0.4, 0.4, 0.4);
+            issHitbox.scale.set(0.6, 0.6, 0.6);
             issHitbox.position.copy(issPivot.position);
-            issHitbox.userData = { ...issData, radius: issScale * 2 };
+            issHitbox.userData = { ...issData, radius: issScale * 3 };
             
             const issRotator = new THREE.Group();
             issRotator.add(issPivot); issRotator.add(issHitbox);
@@ -157,24 +146,43 @@ function init() {
 
     createStarfield();
     createMilkyWay();
+    buildNavigationMenu(); // Constrói a aba de navegação
     
     window.addEventListener('resize', onWindowResize);
-    
-    // Suporte Universal a Toques sem Falsos Positivos
     let pointerDownPos = new THREE.Vector2();
     renderer.domElement.addEventListener('pointerdown', (e) => pointerDownPos.set(e.clientX, e.clientY));
     renderer.domElement.addEventListener('pointerup', (e) => {
-        if (pointerDownPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) < 5) onPlanetClick(e);
+        if (pointerDownPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) < 5) onCanvasClick(e);
     });
 
     setupUIControls();
 }
 
-// --- Geração Procedural da Via-Láctea (Dinâmica) ---
+// --- POPULA O MENU LATERAL (ABA) DINAMICAMENTE ---
+function buildNavigationMenu() {
+    const list = document.getElementById('astro-list');
+    
+    // Adiciona cada astro que está configurado em celestialData
+    Object.keys(celestialData).forEach(key => {
+        const data = celestialData[key];
+        const li = document.createElement('li');
+        li.textContent = data.name;
+        
+        li.addEventListener('click', () => {
+            // Encontra a malha baseada no ID associado ao userData
+            const targetMesh = raycasterObjects.find(obj => obj.userData.id === key);
+            if(targetMesh) {
+                focusAstro(targetMesh);
+            }
+        });
+        
+        list.appendChild(li);
+    });
+}
+
 function createMilkyWay() {
-    // OTIMIZAÇÃO: Detecta se é celular ou computador e corta as partículas pela metade se necessário
     const isMobile = window.innerWidth < 768;
-    const particles = isMobile ? 30000 : 70000; 
+    const particles = isMobile ? 25000 : 50000; 
 
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particles * 3);
@@ -183,35 +191,29 @@ function createMilkyWay() {
     const colorInside = new THREE.Color(0xffeebb);
     const colorOutside = new THREE.Color(0x1133aa);
 
-    const arms = 5;
-    const armSpin = 4;
-    const galaxyRadius = 6000;
-    const galaxyThickness = 300;
-
     for(let i = 0; i < particles; i++) {
         const i3 = i * 3;
-        const radius = Math.random() * galaxyRadius;
-        const spinAngle = radius * armSpin / galaxyRadius;
-        const branchAngle = (i % arms) * ((Math.PI * 2) / arms);
+        const radius = Math.random() * 6000;
+        const spinAngle = radius * 4 / 6000;
+        const branchAngle = (i % 5) * ((Math.PI * 2) / 5);
 
-        const scatterX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (galaxyRadius/radius);
-        const scatterY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * galaxyThickness * (1 - radius/galaxyRadius);
-        const scatterZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (galaxyRadius/radius);
+        const scatterX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (6000/radius);
+        const scatterY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (1 - radius/6000);
+        const scatterZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (6000/radius);
 
         positions[i3] = Math.cos(branchAngle + spinAngle) * radius + scatterX;
-        positions[i3 + 1] = scatterY - 1000;
+        positions[i3 + 1] = scatterY - 800;
         positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + scatterZ;
 
         const mixedColor = colorInside.clone();
-        mixedColor.lerp(colorOutside, radius / galaxyRadius);
+        mixedColor.lerp(colorOutside, radius / 6000);
         colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
     }
 
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const material = new THREE.PointsMaterial({ size: isMobile ? 15 : 10, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.6 });
-
+    const material = new THREE.PointsMaterial({ size: isMobile ? 12 : 8, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.6 });
     galaxyMesh = new THREE.Points(geometry, material);
     galaxyMesh.visible = false;
     scene.add(galaxyMesh);
@@ -221,16 +223,15 @@ function createOrbitLine(radius) {
     if(radius === 0) return;
     const points = [];
     for (let i = 0; i <= 128; i++) points.push(new THREE.Vector3(Math.cos(i/128 * Math.PI*2) * radius, 0, Math.sin(i/128 * Math.PI*2) * radius));
-    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.05 })));
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 })));
 }
 
 function createStarfield() {
     const isMobile = window.innerWidth < 768;
-    const totalStars = isMobile ? 1500 : 4000;
-    
+    const totalStars = isMobile ? 1500 : 3500;
     const pos = new Float32Array(totalStars * 3);
     for (let i = 0; i < totalStars * 3; i += 3) {
-        const r = 2000 + Math.random() * 2000, u = Math.random(), v = Math.random();
+        const r = 1500 + Math.random() * 2000, u = Math.random(), v = Math.random();
         const theta = u * 2 * Math.PI, phi = Math.acos(2 * v - 1);
         pos[i] = r * Math.sin(phi) * Math.cos(theta); pos[i+1] = r * Math.sin(phi) * Math.sin(theta); pos[i+2] = r * Math.cos(phi);
     }
@@ -238,49 +239,50 @@ function createStarfield() {
     scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 2.0, transparent: true, opacity: 0.6 })));
 }
 
-function onPlanetClick(event) {
-    if (event.target.tagName === 'BUTTON' || event.target.closest('#info-panel') || event.target.closest('#physics-modal')) return;
+// Interatividade Unificada (Mouse e Lista)
+function onCanvasClick(event) {
+    if (event.target.tagName === 'BUTTON' || event.target.closest('#info-panel') || event.target.closest('#physics-modal') || event.target.closest('#astro-menu')) return;
 
     const mouse = new THREE.Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
 
     const intersects = raycaster.intersectObjects(raycasterObjects);
+    if (intersects.length > 0) focusAstro(intersects[0].object);
+}
 
-    if (intersects.length > 0) {
-        const clickedObj = intersects[0].object;
-
-        if (focusedPlanetMesh === clickedObj) {
-            resetCamera();
-            return;
-        }
-
-        const info = clickedObj.userData;
-        focusedPlanetMesh = clickedObj;
-        focusedPlanetMesh.getWorldPosition(previousTargetPos);
-        
-        const r = info.radius || 1;
-        targetCamPos.copy(previousTargetPos).add(new THREE.Vector3(r * 2.5, r * 1.5, r * 3.5));
-        
-        isLerpingCamera = true;
-        controls.enabled = false; 
-
-        document.getElementById('planet-name').textContent = info.name;
-        document.getElementById('planet-type').textContent = info.type;
-        document.getElementById('planet-dist').textContent = info.distSol;
-        document.getElementById('planet-size').textContent = info.size;
-        document.getElementById('planet-atm').textContent = info.atm;
-        document.getElementById('planet-temp').textContent = info.temp;
-        document.getElementById('planet-fact').textContent = info.fact;
-        document.getElementById('info-panel').classList.add('visible');
+// Lógica isolada para permitir ser chamada pelos cliques da lista e do 3D
+function focusAstro(mesh) {
+    if (focusedPlanetMesh === mesh) {
+        resetCamera();
+        return;
     }
+
+    const info = mesh.userData;
+    focusedPlanetMesh = mesh;
+    focusedPlanetMesh.getWorldPosition(previousTargetPos);
+    
+    const r = info.radius || 1;
+    targetCamPos.copy(previousTargetPos).add(new THREE.Vector3(r * 3.0, r * 1.5, r * 4.0));
+    
+    isLerpingCamera = true;
+    controls.enabled = false; 
+
+    document.getElementById('planet-name').textContent = info.name;
+    document.getElementById('planet-type').textContent = info.type;
+    document.getElementById('planet-dist').textContent = info.distSol;
+    document.getElementById('planet-size').textContent = info.size;
+    document.getElementById('planet-atm').textContent = info.atm;
+    document.getElementById('planet-temp').textContent = info.temp;
+    document.getElementById('planet-fact').textContent = info.fact;
+    document.getElementById('info-panel').classList.add('visible');
 }
 
 function resetCamera() {
     focusedPlanetMesh = null;
     isLerpingCamera = false;
     controls.enabled = true;
-    camera.position.set(0, 400, 700);
+    camera.position.set(0, 300, 500);
     controls.target.set(0,0,0);
     document.getElementById('info-panel').classList.remove('visible');
 }
@@ -288,9 +290,7 @@ function resetCamera() {
 function animate() {
     requestAnimationFrame(animate);
 
-    if(galaxyMesh && galaxyMesh.visible) {
-        galaxyMesh.rotation.y += 0.0005; 
-    }
+    if(galaxyMesh && galaxyMesh.visible) galaxyMesh.rotation.y += 0.0003; 
 
     planetsSystem.forEach((sys) => {
         if (sys.isSun) {
@@ -317,8 +317,8 @@ function animate() {
             });
 
             if (sys.issPivot && issActive) {
-                sys.issPivot.rotation.y += 0.1; 
-                sys.issPivot.rotation.x += 0.02;
+                sys.issPivot.rotation.y += 0.05; 
+                sys.issPivot.rotation.x += 0.01;
             }
         }
     });
@@ -347,16 +347,14 @@ function animate() {
 function setupUIControls() {
     document.getElementById('close-panel').addEventListener('click', () => document.getElementById('info-panel').classList.remove('visible'));
     document.getElementById('btn-reset').addEventListener('click', resetCamera);
-    document.getElementById('btn-view').addEventListener('click', () => { resetCamera(); camera.position.set(0, 1000, 0.1); });
+    document.getElementById('btn-view').addEventListener('click', () => { resetCamera(); camera.position.set(0, 800, 0.1); });
 
     const btnGalaxy = document.getElementById('btn-toggle-galaxy');
     btnGalaxy.addEventListener('click', () => {
         galaxyMesh.visible = !galaxyMesh.visible;
         btnGalaxy.classList.toggle('active');
         btnGalaxy.innerText = galaxyMesh.visible ? "Via-Láctea: ON" : "Via-Láctea: OFF";
-        if(galaxyMesh.visible) {
-            camera.position.set(0, 1500, 2000);
-        }
+        if(galaxyMesh.visible) camera.position.set(0, 1000, 1500);
     });
 
     const btnPlanets = document.getElementById('btn-toggle-planets');
