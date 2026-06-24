@@ -2,43 +2,71 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Solar Interativo 3D</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistema Solar 3D - Física UFPA</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="controls">
-        <button id="btn-pause">Pausar/Continuar</button>
-        <button id="btn-view">Alternar 2D/3D</button>
-        <button id="btn-reset">Resetar Câmera</button>
+    <div id="canvas-container"></div>
+
+    <div id="author-signature">
+        Projeto desenvolvido por: <strong>Luiz Miguel N. Cardoso</strong><br>
+        Física UFPA - Campus Abaetetuba
     </div>
 
-    <aside id="info-panel" class="hidden">
-        <button id="close-panel">X</button>
-        <h2 id="planet-name">Nome do Planeta</h2>
-        <p><strong>Distância do Sol:</strong> <span id="planet-dist"></span></p>
-        <p><strong>Diâmetro:</strong> <span id="planet-size"></span></p>
-        <p><strong>Luas:</strong> <span id="planet-moons"></span></p>
-        <p><strong>Atmosfera:</strong> <span id="planet-atm"></span></p>
-        <p><strong>Temperatura Média:</strong> <span id="planet-temp"></span></p>
-        <p class="curiosity"><em>Curiosidade:</em> <span id="planet-fact"></span></p>
-    </aside>
+    <div class="controls top-controls">
+        <button id="btn-view">Visão de Topo</button>
+        <button id="btn-reset">Visão Geral (Sol)</button>
+        <button id="btn-toggle-mw" class="galaxy-btn">🌌 Via-Láctea: OFF</button>
+        <button id="btn-physics" class="highlight-btn">Física do Espaço</button>
+    </div>
 
-    <div id="universe">
-        <div id="solar-system" class="view-3d">
-            <div id="sun"></div>
-            
-            <div class="orbit mercury-orbit"><div class="planet mercury" data-id="mercury"></div></div>
-            <div class="orbit venus-orbit"><div class="planet venus" data-id="venus"></div></div>
-            <div class="orbit earth-orbit"><div class="planet earth" data-id="earth"></div></div>
-            <div class="orbit mars-orbit"><div class="planet mars" data-id="mars"></div></div>
-            <div class="orbit jupiter-orbit"><div class="planet jupiter" data-id="jupiter"></div></div>
-            <div class="orbit saturn-orbit"><div class="planet saturn" data-id="saturn"><div class="rings"></div></div></div>
-            <div class="orbit uranus-orbit"><div class="planet uranus" data-id="uranus"></div></div>
-            <div class="orbit neptune-orbit"><div class="planet neptune" data-id="neptune"></div></div>
+    <div class="controls bottom-controls">
+        <div class="control-group">
+            <button id="btn-toggle-planets" class="active">Planetas: ON</button>
+            <button id="btn-toggle-moons" class="active">Luas: ON</button>
+            <button id="btn-toggle-iss" class="active">ISS: ON</button>
         </div>
     </div>
 
+    <aside id="info-panel">
+        <button id="close-panel">X</button>
+        <h2 id="planet-name">Astro</h2>
+        <p><strong>Classificação:</strong> <span id="planet-type"></span></p>
+        <p><strong>Distância:</strong> <span id="planet-dist"></span></p>
+        <p><strong>Diâmetro Real:</strong> <span id="planet-size"></span></p>
+        <p><strong>Características:</strong> <span id="planet-atm"></span></p>
+        <p><strong>Temperatura:</strong> <span id="planet-temp"></span></p>
+        <div class="curiosity">
+            <strong>Fato Curioso:</strong><br>
+            <span id="planet-fact"></span>
+        </div>
+    </aside>
+
+    <div id="physics-modal" class="hidden">
+        <div class="modal-content">
+            <button id="close-physics">X</button>
+            <h2>Explorando o Espaço: O Desafio da Escala</h2>
+            
+            <div class="topic">
+                <h3>A Verdadeira Dimensão</h3>
+                <p>Nesta simulação, os <strong>volumes dos planetas estão proporcionais entre si</strong> (Júpiter tem um raio 11 vezes maior que o da Terra). No entanto, distâncias foram adaptadas. Se usássemos a distância real, a Terra estaria a quase 12 mil vezes o seu próprio diâmetro de distância do Sol, tornando-a um pixel invisível na tela!</p>
+            </div>
+
+            <div class="topic">
+                <h3>O Movimento Uniforme</h3>
+                <p>A velocidade orbital dos planetas diminui conforme nos afastamos do Sol, obedecendo à Terceira Lei de Kepler. Mercúrio viaja a 47 km/s, enquanto Netuno arrasta-se a apenas 5,4 km/s em sua órbita monumental.</p>
+            </div>
+
+            <div class="topic">
+                <h3>A Via Láctea</h3>
+                <p>Nossa galáxia é uma espiral barrada com mais de 100 mil anos-luz de diâmetro. O Sistema Solar viaja pelo espaço a cerca de 828.000 km/h orbitando o centro galáctico, levando cerca de 230 milhões de anos para dar uma volta completa.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
