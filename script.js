@@ -3,10 +3,8 @@
  * Desenvolvido sob princípios de Computação Gráfica Avançada e PBR
  */
 
-// Loader global para carregar texturas externas (mapas de cor, normais e rugosidade)
 const textureLoader = new THREE.TextureLoader();
 
-// Banco de Dados Celestial - Escala Visual Didática Otimizada
 const issData = { id: 'iss', name: "Estação Espacial", type: "Laboratório Artificial", distSol: "420 km da Terra", size: "109 metros", atm: "Pressurizada (N2/O2)", temp: "-150°C a 120°C", fact: "Viaja a 27.600 km/h, completando uma órbita completa a cada 92 minutos em queda livre estável." };
 
 const celestialData = {
@@ -31,34 +29,27 @@ const celestialData = {
         data: { distSol: "4,5 B km", size: "49.244 km", atm: "Hidrogênio, Hélio e Metano", temp: "-201°C", fact: "Exibe os ventos mais violentos do Sistema Solar, atingindo velocidades supersônicas de até 2.100 km/h." } }
 };
 
-// Variáveis Globais do Three.js
 let scene, camera, renderer, controls, clock;
-let planetsSystem = []; // Gerenciamento de entidades
-let raycasterObjects = []; // Objetos clicáveis
+let planetsSystem = [];
+let raycasterObjects = [];
 let galaxyPoints = null;
 let starfieldPoints = null;
-let focusedPlanetMesh = null; // O planeta que a câmera está seguindo atualmente
+let focusedPlanetMesh = null;
 
-// Variáveis para transição suave de câmera
 const previousTargetPos = new THREE.Vector3();
 const targetCamPos = new THREE.Vector3();
 let isLerpingCamera = false;
 
-// Estados de renderização (UI Toggles)
+// Estados de renderização e tempo
 let orbitsActive = true;
 let moonsActive = true;
 let issActive = true;
+let timeScale = 1.0; // Multiplicador dinâmico de velocidade
 
-// Otimização: Instanciação de Geometrias Compartilhadas (Economiza memória GPU)
 const sharedSphereGeo = new THREE.SphereGeometry(1, 64, 64);
 const sharedLowPolyGeo = new THREE.SphereGeometry(1, 16, 16);
 const invisibleHitboxMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
-/* ==========================================
-   SHADERS (GLSL)
-   ========================================== */
-
-// Shader da Atmosfera (Efeito Fresnel / Dispersão de Rayleigh simplificada)
 const atmosVertexShader = `
     varying vec3 vNormal;
     varying vec3 vViewPosition;
@@ -69,6 +60,7 @@ const atmosVertexShader = `
         gl_Position = projectionMatrix * mvPosition;
     }
 `;
+
 const atmosFragmentShader = `
     varying vec3 vNormal;
     varying vec3 vViewPosition;
@@ -76,30 +68,27 @@ const atmosFragmentShader = `
     void main() {
         vec3 normal = normalize(vNormal);
         vec3 viewDir = normalize(vViewPosition);
-        // Calcula a intensidade com base no ângulo de visão (Fresnel)
         float intensity = pow(1.0 - max(dot(normal, viewDir), 0.0), 4.0);
         gl_FragColor = vec4(uColor, 1.0) * intensity;
     }
 `;
 
-// Shader do Campo Estelar Dinâmico (Cintilação baseada no tempo)
 const starVertexShader = `
     attribute float aPhase;
     attribute float aSize;
     varying float vAlpha;
     uniform float uTime;
     void main() {
-        // Equação de onda senoidal para simular cintilação de estrelas
         vAlpha = 0.4 + 0.6 * sin(uTime * 2.5 + aPhase * 6.28);
         vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
         gl_PointSize = aSize * (350.0 / -mvPosition.z);
         gl_Position = projectionMatrix * mvPosition;
     }
 `;
+
 const starFragmentShader = `
     varying float vAlpha;
     void main() {
-        // Deixa os pontos de estrela circulares com bordas suaves
         float dist = distance(gl_PointCoord, vec2(0.5));
         if (dist > 0.5) discard;
         float alphaSmooth = smoothstep(0.5, 0.1, dist) * vAlpha;
@@ -107,50 +96,46 @@ const starFragmentShader = `
     }
 `;
 
-/* ==========================================
-   INICIALIZAÇÃO DO THREE.JS
-   ========================================== */
-
 function init() {
     scene = new THREE.Scene();
     clock = new THREE.Clock();
     
-    // Configuração de Câmera e Renderizador (ToneMapping realista)
     camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 20000);
     camera.position.set(0, 400, 700);
 
     renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-    // Controles de Órbita
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.maxDistance = 8000;
     controls.minDistance = 0.5;
 
-    // Iluminação do Ambiente
     scene.add(new THREE.AmbientLight(0x0a0a16, 1.2));
-    const sunLight = new THREE.PointLight(0xffffff, 4.5, 5000, 0.5);
+    
+    // LUZ DO SOL REDUZIDA: De 4.5 para 3.0 para não estourar a iluminação dos planetas
+    const sunLight = new THREE.PointLight(0xffffff, 3.0, 5000, 0.5);
     scene.add(sunLight);
 
-    // Geração do Sistema Solar a partir do JSON
     Object.keys(celestialData).forEach((key) => {
         const data = celestialData[key];
 
-        // Regra especial para o Sol (Emissor de luz)
         if (key === 'sun') {
             const sunMat = new THREE.MeshBasicMaterial({ color: data.color, map: textureLoader.load(data.textureUrl) });
             const sunMesh = new THREE.Mesh(sharedSphereGeo, sunMat);
             sunMesh.scale.set(data.radius, data.radius, data.radius);
             sunMesh.userData = { id: key, ...data.data, name: data.name, type: data.type, radius: data.radius };
             
-            const coronaMat = new THREE.SpriteMaterial({ map: generateCoronaTexture(), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.85 });
+            // COROA SOLAR REDUZIDA: Opacidade de 0.85 para 0.50
+            const coronaMat = new THREE.SpriteMaterial({ map: generateCoronaTexture(), blending: THREE.AdditiveBlending, transparent: true, opacity: 0.50 });
             const coronaSprite = new THREE.Sprite(coronaMat);
             coronaSprite.scale.set(data.radius * 3.8, data.radius * 3.8, 1.0);
             sunMesh.add(coronaSprite);
@@ -161,14 +146,13 @@ function init() {
             return;
         }
 
-        // Setup para Planetas
         const planetGroup = new THREE.Group();
-        planetGroup.userData.currentAngle = Math.random() * Math.PI * 2; // Posição orbital inicial aleatória
+        planetGroup.userData.currentAngle = Math.random() * Math.PI * 2;
         planetGroup.userData.speed = data.speed;
         planetGroup.userData.dist = data.dist;
 
-        // Materiais baseados em PBR (Physically Based Rendering)
         const pMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.1 });
+        
         if (data.textureUrl) pMat.map = textureLoader.load(data.textureUrl);
         if (data.normalUrl) {
             pMat.normalMap = textureLoader.load(data.normalUrl);
@@ -187,7 +171,6 @@ function init() {
         raycasterObjects.push(pMesh);
         planetGroup.add(pMesh);
 
-        // Atmosfera para Terra e Vênus
         if (key === 'earth' || key === 'venus') {
             const colorAtm = key === 'earth' ? new THREE.Color(0x2b82c9) : new THREE.Color(0xe0a96d);
             const atmosMat = new THREE.ShaderMaterial({ vertexShader: atmosVertexShader, fragmentShader: atmosFragmentShader, uniforms: { uColor: { value: colorAtm } }, blending: THREE.AdditiveBlending, side: THREE.BackSide, transparent: true });
@@ -196,7 +179,6 @@ function init() {
             planetGroup.add(atmosMesh);
         }
 
-        // Anéis de Saturno
         if (data.hasRings) {
             const ringGeo = new THREE.RingGeometry(data.radius * 1.4, data.radius * 2.6, 64);
             const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfa37a, side: THREE.DoubleSide, transparent: true, opacity: 0.7, roughness: 0.6 });
@@ -205,7 +187,6 @@ function init() {
             planetGroup.add(ringMesh);
         }
 
-        // Satélites Naturais
         let moonsArr = [];
         if (data.moons) {
             data.moons.forEach(moonData => {
@@ -215,7 +196,6 @@ function init() {
                 moonMesh.scale.set(moonData.radius, moonData.radius, moonData.radius);
                 moonMesh.position.set(moonData.dist, 0, 0);
 
-                // Hitbox invisível maior para facilitar o clique com o mouse/touch
                 const moonHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
                 moonHitbox.scale.set(moonData.radius * 3.5, moonData.radius * 3.5, moonData.radius * 3.5);
                 moonHitbox.position.copy(moonMesh.position);
@@ -228,7 +208,6 @@ function init() {
             });
         }
 
-        // Construção Modular da ISS
         let issPivot;
         if (data.hasISS) {
             issPivot = new THREE.Group();
@@ -269,11 +248,9 @@ function init() {
     createProceduralMilkyWay();
     connectUserInterface();
 
-    // Event listeners para detecção de clique (Raycaster)
     let touchStartPos = new THREE.Vector2();
     renderer.domElement.addEventListener('pointerdown', (e) => touchStartPos.set(e.clientX, e.clientY));
     renderer.domElement.addEventListener('pointerup', (e) => {
-        // Valida se foi um clique limpo ou um arrasto de câmera
         const distClick = touchStartPos.distanceTo(new THREE.Vector2(e.clientX, e.clientY));
         if (distClick < 4) executeRaycastSelect(e);
     });
@@ -281,19 +258,18 @@ function init() {
     window.addEventListener('resize', onWindowResize);
 }
 
-/* ==========================================
-   FUNÇÕES AUXILIARES DE CENA
-   ========================================== */
-
 function generateCoronaTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 512; canvas.height = 512;
     const ctx = canvas.getContext('2d');
     const grad = ctx.createRadialGradient(256, 256, 32, 256, 256, 256);
-    grad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
-    grad.addColorStop(0.15, 'rgba(255, 200, 50, 0.8)');
-    grad.addColorStop(0.45, 'rgba(230, 70, 10, 0.25)');
+    
+    // GRADIENTE SUAVIZADO: Transições de alfa mais baixas para reduzir o ofuscamento
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+    grad.addColorStop(0.1, 'rgba(255, 220, 100, 0.5)');
+    grad.addColorStop(0.3, 'rgba(230, 100, 20, 0.15)');
     grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+    
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, 512, 512);
     return new THREE.CanvasTexture(canvas);
@@ -323,7 +299,7 @@ function createDynamicStarfield() {
 
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('aPhase', new THREE.BufferAttribute(phases, 1));
-    geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1)); // Correção: Era 'size', mudei para 'aSize' conectando ao Vertex Shader
+    geo.setAttribute('aSize', new THREE.BufferAttribute(sizes, 1));
 
     const starMat = new THREE.ShaderMaterial({
         vertexShader: starVertexShader,
@@ -388,12 +364,8 @@ function createOrbitLine(radius) {
     scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x3a86ff, transparent: true, opacity: 0.08 })));
 }
 
-/* ==========================================
-   SISTEMA DE INTERAÇÃO E UI
-   ========================================== */
-
 function executeRaycastSelect(event) {
-    if (event.target.tagName === 'BUTTON' || event.target.closest('#info-panel') || event.target.closest('#physics-modal') || event.target.closest('#astro-menu')) return;
+    if (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.closest('#info-panel') || event.target.closest('#physics-modal') || event.target.closest('#astro-menu')) return;
     const mouseCoords = new THREE.Vector2((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1);
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouseCoords, camera);
@@ -405,11 +377,9 @@ function focusAstro(mesh) {
     if (focusedPlanetMesh === mesh) { resetCamera(); return; }
     const info = mesh.userData;
     
-    // Cancela o processo de lerp anterior caso haja duplo clique rápido
     isLerpingCamera = false;
     focusedPlanetMesh = mesh;
     
-    // Garante que pegamos a posição mundial absoluta da malha atualizada
     focusedPlanetMesh.updateMatrixWorld(true);
     focusedPlanetMesh.getWorldPosition(previousTargetPos);
     
@@ -472,6 +442,27 @@ function connectUserInterface() {
     const pModal = document.getElementById('physics-modal');
     document.getElementById('btn-physics').addEventListener('click', () => pModal.classList.remove('hidden'));
     document.getElementById('close-physics').addEventListener('click', () => pModal.classList.add('hidden'));
+
+    // Lógica do Slider de Velocidade
+    const timeSlider = document.getElementById('time-scale');
+    const speedLabel = document.getElementById('speed-label');
+    
+    timeSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        if (val <= 10) {
+            timeScale = val / 10; 
+        } else {
+            timeScale = 1 + Math.pow((val - 10) / 15, 2); 
+        }
+        
+        if (timeScale === 0) {
+            speedLabel.textContent = "Tempo: Pausado (0.0x)";
+            speedLabel.style.color = "#ef4444"; 
+        } else {
+            speedLabel.textContent = `Escala de Tempo: ${timeScale.toFixed(1)}x`;
+            speedLabel.style.color = "#e2e8f0";
+        }
+    });
 }
 
 function onWindowResize() {
@@ -481,25 +472,19 @@ function onWindowResize() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 }
 
-/* ==========================================
-   LOOP DE ANIMAÇÃO E FÍSICA
-   ========================================== */
-
 function animate() {
     requestAnimationFrame(animate);
     const elapsedTime = clock.getElapsedTime();
 
-    // Atualiza Shaders
     if (starfieldPoints) starfieldPoints.material.uniforms.uTime.value = elapsedTime;
     if (galaxyPoints && galaxyPoints.visible) galaxyPoints.rotation.y += 0.0002;
 
     planetsSystem.forEach((sys) => {
         if (sys.isSun) {
-            sys.mesh.rotation.y += 0.001; // Rotação do Sol
+            sys.mesh.rotation.y += 0.001 * timeScale; 
         } else {
-            sys.pMesh.rotation.y += 0.004; // Rotação axial do planeta
+            sys.pMesh.rotation.y += 0.004 * timeScale; 
 
-            // Lógica para pausar a órbita apenas do planeta focado (facilita a leitura)
             let systemIsFocused = false;
             if (focusedPlanetMesh) {
                 if (sys.pMesh === focusedPlanetMesh) systemIsFocused = true;
@@ -507,22 +492,23 @@ function animate() {
                 if (sys.moonsArr.some(m => m.pivot.children.includes(focusedPlanetMesh))) systemIsFocused = true;
             }
 
-            // Translação (Movimento Circular Uniforme usando trigonometria básica)
             if (orbitsActive && !systemIsFocused) {
-                sys.group.userData.currentAngle += sys.group.userData.speed;
+                sys.group.userData.currentAngle += (sys.group.userData.speed * timeScale);
                 sys.group.position.x = Math.cos(sys.group.userData.currentAngle) * sys.group.userData.dist;
                 sys.group.position.z = Math.sin(sys.group.userData.currentAngle) * sys.group.userData.dist;
             }
 
-            sys.moonsArr.forEach(moon => { if (moonsActive) moon.pivot.rotation.y += moon.speed; });
+            sys.moonsArr.forEach(moon => { 
+                if (moonsActive) moon.pivot.rotation.y += (moon.speed * timeScale); 
+            });
 
             if (sys.issPivot && issActive) {
-                sys.issPivot.rotation.y += 0.045; // Velocidade orbital da ISS
+                sys.issPivot.rotation.y += 0.045 * timeScale;
+                sys.issPivot.rotation.x += 0.008 * timeScale; 
             }
         }
     });
 
-    // Lógica de seguimento de câmera suave (Lerp)
     if (focusedPlanetMesh) {
         const currentTargetPos = new THREE.Vector3();
         focusedPlanetMesh.getWorldPosition(currentTargetPos);
@@ -530,23 +516,21 @@ function animate() {
 
         if (isLerpingCamera) {
             targetCamPos.add(diffVector);
-            camera.position.lerp(targetCamPos, 0.05); // Suaviza a viagem da câmera
+            camera.position.lerp(targetCamPos, 0.05);
             controls.target.lerp(currentTargetPos, 0.05);
-            
             if (camera.position.distanceTo(targetCamPos) < 0.1) { 
                 isLerpingCamera = false; 
                 controls.enabled = true; 
             }
         } else {
-            camera.position.add(diffVector); // Acompanha estritamente o alvo
+            camera.position.add(diffVector);
             controls.target.copy(currentTargetPos);
         }
         previousTargetPos.copy(currentTargetPos);
     }
 
-    controls.update(); // Necessário por causa do dampingFactor na câmera
+    controls.update();
     renderer.render(scene, camera);
 }
 
-// Inicia a aplicação
 init();
