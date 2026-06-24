@@ -1,9 +1,9 @@
-/* --- RESET E DIRETRIZES DE FLUIDEZ UX --- */
+/* --- Reset Global de Layout e Prevenção de Conflitos de Gestos --- */
 * { 
     margin: 0; 
     padding: 0; 
     box-sizing: border-box; 
-    font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
     user-select: none; 
     -webkit-user-select: none; 
 }
@@ -13,10 +13,9 @@ body, html {
     height: 100%; 
     overflow: hidden; 
     background-color: #020208; 
-    touch-action: none; 
+    touch-action: none; /* Bloqueia o comportamento de scroll nativo do navegador sobrepondo o WebGL */
 }
 
-/* Canvas fixado ao fundo com bloqueio nativo de scroll parasita */
 #canvas-container { 
     position: absolute; 
     top: 0; 
@@ -24,33 +23,32 @@ body, html {
     z-index: 1; 
     width: 100%; 
     height: 100%; 
-    touch-action: none; 
 }
 
-/* Assinatura de Autoria */
+/* --- Assinatura Acadêmica --- */
 #author-signature { 
     position: absolute; 
     bottom: 20px; 
     right: 20px; 
     z-index: 10; 
-    color: rgba(255, 255, 255, 0.7); 
+    color: rgba(255, 255, 255, 0.75); 
     font-size: 0.8rem; 
     text-align: right; 
-    background: rgba(5, 5, 15, 0.75); 
-    padding: 10px 14px; 
+    background: rgba(4, 4, 12, 0.7); 
+    padding: 10px 16px; 
     border-radius: 8px; 
-    border-right: 3px solid #0088ff; 
-    backdrop-filter: blur(10px); 
+    border-right: 3px solid #3a86ff; 
+    backdrop-filter: blur(8px); 
     pointer-events: none; 
 }
-#author-signature strong { color: #fff; }
+#author-signature strong { color: #ffffff; }
 
-/* --- COMPONENTES DA INTERFACE DE USUÁRIO (UI) --- */
+/* --- Mecanismo de Controles Unificados (UI) --- */
 .controls { 
     position: absolute; 
     z-index: 10; 
     display: flex; 
-    gap: 10px; 
+    gap: 12px; 
     flex-wrap: wrap; 
 }
 .top-controls { top: 20px; left: 20px; }
@@ -59,158 +57,206 @@ body, html {
 .control-group { 
     display: flex; 
     gap: 6px; 
-    background: rgba(10, 10, 25, 0.6); 
+    background: rgba(6, 6, 18, 0.75); 
     padding: 6px; 
     border-radius: 8px; 
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    backdrop-filter: blur(12px); 
+    border: 1px solid rgba(58, 134, 255, 0.25); 
+    backdrop-filter: blur(10px); 
 }
 
 .ui-btn { 
-    background: rgba(20, 20, 40, 0.7); 
+    background: rgba(15, 15, 35, 0.75); 
     color: #e2e8f0; 
-    border: 1px solid rgba(255, 255, 255, 0.15); 
-    padding: 10px 16px; 
+    border: 1px solid rgba(58, 134, 255, 0.2); 
+    padding: 10px 18px; 
     border-radius: 6px; 
     cursor: pointer; 
     font-size: 0.85rem; 
     font-weight: 500;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5); 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); 
 }
+.ui-btn:hover { background: rgba(58, 134, 255, 0.25); border-color: #3a86ff; color: #ffffff; }
 .ui-btn:active { transform: scale(0.96); }
-.ui-btn.active { background: rgba(0, 136, 255, 0.35); border-color: #0088ff; color: #ffffff; }
-.ui-btn:hover:not(.active) { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
-.highlight-btn { background: rgba(139, 92, 246, 0.3); border-color: #8b5cf6; font-weight: 600; }
-.galaxy-btn { background: rgba(255, 255, 255, 0.05); }
+.ui-btn.active { background: rgba(58, 134, 255, 0.4); border-color: #3a86ff; color: #ffffff; }
 
-/* --- MENU UNIVERSAL HIERÁRQUICO (DESKTOP) --- */
+.highlight-btn { background: rgba(131, 56, 236, 0.3); border-color: #8338ec; }
+.highlight-btn:hover { background: rgba(131, 56, 236, 0.5); border-color: #8338ec; }
+
+/* --- Menu de Navegação Universal (Desktop) --- */
 #astro-menu {
     position: absolute; 
     left: 20px; 
     top: 80px; 
     z-index: 10;
-    background: rgba(8, 8, 20, 0.8); 
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.1); 
-    border-radius: 12px; 
+    background: rgba(6, 6, 18, 0.8); 
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(58, 134, 255, 0.2); 
+    border-radius: 10px; 
     padding: 16px;
     width: 260px; 
     max-height: calc(100vh - 160px); 
     display: flex; 
     flex-direction: column;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.7);
 }
 #astro-menu h3 { 
-    color: #0088ff; 
+    color: #3a86ff; 
     font-size: 0.95rem; 
     text-transform: uppercase; 
-    letter-spacing: 1.5px; 
-    border-bottom: 1px solid rgba(255,255,255,0.1); 
-    padding-bottom: 10px; 
-    margin-bottom: 10px;
-    flex-shrink: 0;
+    letter-spacing: 1px; 
+    border-bottom: 1px solid rgba(58, 134, 255, 0.2); 
+    padding-bottom: 8px; 
+    margin-bottom: 10px; 
 }
-.menu-scroll { overflow-y: auto; overflow-x: hidden; padding-right: 4px; }
+.menu-scroll { 
+    overflow-y: auto; 
+    padding-right: 4px; 
+}
 .menu-scroll::-webkit-scrollbar { width: 4px; }
-.menu-scroll::-webkit-scrollbar-thumb { background: rgba(0, 136, 255, 0.5); border-radius: 4px; }
+.menu-scroll::-webkit-scrollbar-thumb { background: #3a86ff; border-radius: 4px; }
 
 .menu-category { 
-    font-size: 0.72rem; 
-    color: #94a3b8; 
+    font-size: 0.75rem; 
+    color: #8338ec; 
     font-weight: 700; 
-    margin: 14px 0 6px 4px; 
+    margin: 12px 0 6px 4px; 
     text-transform: uppercase; 
     letter-spacing: 0.5px;
 }
-.astro-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.astro-list { list-style: none; }
 .astro-list li { 
-    padding: 10px 14px; 
-    background: rgba(255,255,255,0.03); 
+    padding: 9px 14px; 
+    margin-bottom: 4px; 
+    background: rgba(255, 255, 255, 0.03); 
     color: #cbd5e1; 
-    border-radius: 6px; 
+    border-radius: 5px; 
     cursor: pointer; 
-    font-size: 0.88rem; 
+    font-size: 0.85rem; 
     transition: all 0.2s ease; 
     border-left: 3px solid transparent; 
 }
-.astro-list li:hover { background: rgba(0, 136, 255, 0.15); color: #fff; border-left: 3px solid #0088ff; transform: translateX(2px); }
+.astro-list li:hover { 
+    background: rgba(58, 134, 255, 0.15); 
+    color: #ffffff; 
+    border-left-color: #3a86ff; 
+    transform: translateX(2px);
+}
 
-/* --- PAINEL LATERAL INFORMATIVO (DESKTOP) --- */
+/* --- Painel Lateral Informativo --- */
 #info-panel { 
     position: absolute; 
     right: -400px; 
     top: 0; 
     width: 400px; 
     height: 100%; 
-    background: rgba(6, 6, 14, 0.9); 
-    border-left: 1px solid rgba(255,255,255,0.1); 
+    background: rgba(4, 4, 12, 0.92); 
+    border-left: 1px solid rgba(58, 134, 255, 0.15); 
     padding: 40px 30px; 
     z-index: 20; 
     transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
     backdrop-filter: blur(20px); 
     color: #f1f5f9; 
-    overflow-y: auto; 
-    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
 }
 #info-panel.visible { right: 0; }
-.close-btn { 
+#close-panel { 
     position: absolute; 
     top: 20px; 
-    right: 20px; 
+    right: 25px; 
     background: none; 
     border: none; 
-    font-size: 1.8rem; 
+    font-size: 2rem; 
     color: #64748b; 
     cursor: pointer; 
     transition: color 0.2s;
 }
-.close-btn:hover { color: #fff; }
-#info-panel h2 { color: #ffffff; font-size: 2rem; margin-bottom: 24px; border-bottom: 2px solid #0088ff; padding-bottom: 8px; font-weight: 400; }
-#info-panel p { margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; display: flex; justify-content: space-between; }
+#close-panel:hover { color: #ef4444; }
+#info-panel h2 { color: #ffffff; font-size: 2rem; margin-bottom: 25px; border-bottom: 2px solid #3a86ff; padding-bottom: 10px; }
+#info-panel p { margin-bottom: 16px; font-size: 0.95rem; line-height: 1.6; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 8px; }
 #info-panel p strong { color: #94a3b8; font-weight: 500; }
-.curiosity { background: rgba(0, 136, 255, 0.08); border-left: 4px solid #0088ff; padding: 16px; margin-top: 30px; font-size: 0.9rem; line-height: 1.6; border-radius: 0 8px 8px 0; border-top: 1px solid rgba(0,136,255,0.15); }
+.curiosity { 
+    background: rgba(131, 56, 236, 0.1); 
+    border-left: 4px solid #8338ec; 
+    padding: 16px; 
+    margin-top: 30px; 
+    border-radius: 0 8px 8px 0; 
+    font-size: 0.9rem; 
+    line-height: 1.6; 
+}
 
-/* --- MODAL DA FÍSICA --- */
-#physics-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 2, 6, 0.85); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.3s ease; backdrop-filter: blur(12px); }
+/* --- Modal Base Científica --- */
+#physics-modal { 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(2, 2, 6, 0.85); 
+    z-index: 100; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    backdrop-filter: blur(12px); 
+    transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 #physics-modal.hidden { opacity: 0; pointer-events: none; }
-.modal-content { background: #090914; border: 1px solid rgba(0,136,255,0.3); border-radius: 16px; width: 90%; max-width: 650px; max-height: 85vh; padding: 40px; overflow-y: auto; position: relative; color: #cbd5e1; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
-.modal-content h2 { color: #fff; text-align: center; margin-bottom: 30px; font-size: 1.6rem; font-weight: 500; }
-.topic { margin-bottom: 28px; }
-.topic h3 { color: #0088ff; margin-bottom: 10px; font-size: 1.1rem; font-weight: 600; }
+.modal-content { 
+    background: #060612; 
+    border: 1px solid rgba(58, 134, 255, 0.3); 
+    border-radius: 16px; 
+    width: 90%; 
+    max-width: 680px; 
+    max-height: 80vh; 
+    padding: 40px; 
+    overflow-y: auto; 
+    position: relative; 
+    color: #e2e8f0; 
+}
+.modal-content h2 { text-align: center; margin-bottom: 30px; font-size: 1.6rem; color: #ffffff; }
+.topic { margin-bottom: 24px; }
+.topic h3 { color: #3a86ff; margin-bottom: 10px; font-size: 1.15rem; }
 .topic p { line-height: 1.7; font-size: 0.95rem; text-align: justify; color: #94a3b8; }
+#close-physics { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 2rem; color: #64748b; cursor: pointer; }
+#close-physics:hover { color: #ffffff; }
 
-/* --- OTIMIZAÇÃO E RESPONSIVIDADE EM DISPOSITIVOS MÓVEIS (TOUCH GASTRONOMY) --- */
+/* --- Otimização Dinâmica de Dispositivos Móveis (Media Queries) --- */
 @media (max-width: 768px) {
-    /* Menu vira Barra Horizontal Superior Compacta e Deslizante */
+    /* Menu Lateral passa a ser uma Gaveta de Polegar Inferior Transversal */
     #astro-menu { 
-        top: 74px; left: 0; width: 100%; height: auto; max-height: 60px; padding: 6px 12px;
-        border-radius: 0; border: none; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(6, 6, 12, 0.9);
+        top: auto; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 160px;
+        max-height: 160px; 
+        padding: 12px; 
+        border-radius: 16px 16px 0 0; 
+        border: none; 
+        border-top: 1px solid rgba(58, 134, 255, 0.3);
+        background: rgba(4, 4, 12, 0.95);
     }
     #astro-menu h3 { display: none; }
-    .menu-scroll { display: flex; overflow-x: auto; overflow-y: hidden; width: 100%; padding: 0; height: 100%; align-items: center; }
-    .menu-category { display: none; }
-    .astro-list { flex-direction: row; gap: 8px; width: auto; }
-    .astro-list li { white-space: nowrap; padding: 8px 14px; font-size: 0.8rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); border-left: none; }
-    .astro-list li:hover { transform: none; }
+    .menu-scroll { display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; align-items: center; width: 100%; }
+    .menu-group { display: flex; align-items: center; gap: 8px; }
+    .menu-category { margin: 0 4px 0 0; font-size: 0.7rem; background: rgba(131, 56, 236, 0.15); padding: 6px 10px; border-radius: 4px; }
+    .astro-list { display: flex; gap: 6px; }
+    .astro-list li { margin-bottom: 0; padding: 10px 16px; font-size: 0.8rem; background: rgba(255,255,255,0.05); }
 
-    /* Painel Lateral vira Gaveta Inferior Ergonômica (Thumb-friendly Drawer) */
+    /* Painel informativo em Mobile vira Janela Flutuante Superior Meio-Corpo */
     #info-panel { 
-        width: 100%; height: 55%; bottom: -55%; top: auto; right: 0; 
-        border-left: none; border-top: 1px solid rgba(0, 136, 255, 0.3); 
-        border-radius: 20px 20px 0 0; padding: 24px; transition: bottom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        width: 100%; 
+        height: 45%; 
+        bottom: -45%; 
+        top: auto; 
+        right: 0; 
+        border-left: none; 
+        border-top: 1px solid rgba(58, 134, 255, 0.3); 
+        border-radius: 20px 20px 0 0; 
+        padding: 24px;
     }
-    #info-panel.visible { bottom: 0; right: 0; }
-    #info-panel h2 { font-size: 1.5rem; margin-bottom: 16px; }
-    #info-panel p { font-size: 0.85rem; margin-bottom: 10px; padding-bottom: 6px; }
-    .curiosity { margin-top: 16px; padding: 12px; font-size: 0.82rem; }
+    #info-panel.visible { bottom: 160px; right: 0; } /* Tranca acima da barra de navegação móvel */
 
-    .top-controls { left: 50%; transform: translateX(-50%); width: calc(100% - 24px); justify-content: center; top: 12px; gap: 6px; }
-    .top-controls .ui-btn { padding: 8px 12px; font-size: 0.75rem; }
-    .bottom-controls { bottom: 12px; left: 50%; transform: translateX(-50%); width: 100%; justify-content: center; }
-    .control-group { width: auto; justify-content: center; }
-    .bottom-controls .ui-btn { padding: 8px 12px; font-size: 0.75rem; }
-    
-    .modal-content { padding: 24px; width: 95%; }
-    #author-signature { display: none; } /* Ocultado em mobile para limpar a viewport */
+    .top-controls { justify-content: center; width: 100%; left: 0; padding: 0 10px; gap: 6px; }
+    .ui-btn { padding: 8px 12px; font-size: 0.75rem; }
+    .bottom-controls { display: none; } /* Ocultados para evitar sobreposição estrutural no mobile */
+    #author-signature { display: none; }
 }
