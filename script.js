@@ -1,8 +1,5 @@
+// --- BANCO DE DADOS CELESTE ---
 const textureLoader = new THREE.TextureLoader();
-
-// --- SISTEMA DE ESCALA VOLUMÉTRICA PROPORCIONAL ---
-// Terra = 1.0 Raio. O Sol em proporção real tem 109 Raios Terrestres.
-// Distâncias foram ajustadas logaritmicamente para evitar o vazio absoluto.
 
 const issData = { id: 'iss', name: "Estação Espacial Internacional", type: "Laboratório Espacial", distSol: "400 km de Altitude Terrestre", size: "109 metros", atm: "Vácuo", temp: "Varia de -157°C a 121°C", fact: "Completa uma volta na Terra a cada 90 minutos a 28.000 km/h." };
 
@@ -31,12 +28,13 @@ const celestialData = {
         data: { distSol: "4,5 B km", size: "49.244 km", atm: "Metano, Hidrogênio", temp: "-201°C", fact: "Ventos em Netuno quebram a barreira do som no padrão da Terra." } }
 };
 
+// --- VARIÁVEIS GLOBAIS ---
 let scene, camera, renderer, controls;
 let planetsSystem = [];
 let raycasterObjects = [];
 let galaxyMesh = null;
 
-// Foco Câmera
+// Controle de Foco
 let focusedPlanetMesh = null;
 let previousTargetPos = new THREE.Vector3();
 let targetCamPos = new THREE.Vector3();
@@ -47,36 +45,41 @@ let orbitsActive = true;
 let moonsActive = true;
 let issActive = true;
 
-const infoPanel = document.getElementById('info-panel');
-const container = document.getElementById('canvas-container');
+// OTIMIZAÇÃO: Geometrias globais instanciadas apenas uma vez na VRAM
+const sharedSphereGeo = new THREE.SphereGeometry(1, 48, 48); // Alta resolução para astros maiores
+const sharedLowPolyGeo = new THREE.SphereGeometry(1, 16, 16); // Baixa resolução para satélites e luas
+
+// OTIMIZAÇÃO: Material invisível que não quebra o motor de raycaster
+const invisibleHitboxMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
 
 function init() {
     scene = new THREE.Scene();
     
-    // Frustum drástico: Do milímetro espacial até 10000 unidades (Para enxergar a Galáxia)
-    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.01, 15000);
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 15000);
     camera.position.set(0, 400, 700);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true }); // Corrige Z-Fighting devido à escala imensa
+    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true, powerPreference: "high-performance" });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.maxDistance = 6000;
-    controls.minDistance = 0.05; // Permite entrar nas crateras da Lua e na ISS
+    controls.minDistance = 0.05;
 
     scene.add(new THREE.AmbientLight(0x444444));
-    scene.add(new THREE.PointLight(0xffffff, 3.5, 3000)); // Luz solar hiper-brilhante
+    scene.add(new THREE.PointLight(0xffffff, 3.5, 3000));
 
-    // Inicializa a Estrutura Espacial
+    // Construção do Sistema Solar
     Object.keys(celestialData).forEach((key) => {
         const data = celestialData[key];
 
+        // Sol
         if (key === 'sun') {
             const sunMat = new THREE.MeshBasicMaterial({ color: data.color });
-            const sunMesh = new THREE.Mesh(new THREE.SphereGeometry(data.radius, 64, 64), sunMat);
+            const sunMesh = new THREE.Mesh(sharedSphereGeo, sunMat);
+            sunMesh.scale.set(data.radius, data.radius, data.radius); // Aplica a escala sobre a geometria base
             sunMesh.userData = { id: key, ...data.data, name: data.name, type: data.type, radius: data.radius };
             scene.add(sunMesh);
             raycasterObjects.push(sunMesh);
@@ -90,13 +93,15 @@ function init() {
         planetGroup.userData.dist = data.dist;
 
         let pMat = data.textureUrl ? new THREE.MeshStandardMaterial({ map: textureLoader.load(data.textureUrl), roughness: 0.8 }) : new THREE.MeshStandardMaterial({ color: data.color, roughness: 0.7 });
-        const pMesh = new THREE.Mesh(new THREE.SphereGeometry(data.radius, 64, 64), pMat);
+        const pMesh = new THREE.Mesh(sharedSphereGeo, pMat);
+        pMesh.scale.set(data.radius, data.radius, data.radius);
         pMesh.userData = { id: key, ...data.data, name: data.name, type: data.type, radius: data.radius };
         raycasterObjects.push(pMesh);
         planetGroup.add(pMesh);
 
         if (data.hasRings) {
-            const ringMesh = new THREE.Mesh(new THREE.RingGeometry(data.radius * 1.5, data.radius * 2.8, 128), new THREE.MeshStandardMaterial({ color: 0xbf9b65, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
+            // OTIMIZAÇÃO: Segmentos reduzidos de 128 para 64 sem perda visual
+            const ringMesh = new THREE.Mesh(new THREE.RingGeometry(data.radius * 1.5, data.radius * 2.8, 64), new THREE.MeshStandardMaterial({ color: 0xbf9b65, side: THREE.DoubleSide, transparent: true, opacity: 0.6 }));
             ringMesh.rotation.x = Math.PI / 2.5;
             planetGroup.add(ringMesh);
         }
@@ -105,11 +110,12 @@ function init() {
         if (data.moons) {
             data.moons.forEach(moonData => {
                 const moonPivot = new THREE.Group();
-                const moonMesh = new THREE.Mesh(new THREE.SphereGeometry(moonData.radius, 32, 32), new THREE.MeshStandardMaterial({ color: moonData.color }));
+                const moonMesh = new THREE.Mesh(sharedLowPolyGeo, new THREE.MeshStandardMaterial({ color: moonData.color }));
+                moonMesh.scale.set(moonData.radius, moonData.radius, moonData.radius);
                 moonMesh.position.set(moonData.dist, 0, 0);
 
-                // Hitbox expansiva logarítmica
-                const moonHitbox = new THREE.Mesh(new THREE.SphereGeometry(moonData.radius * 4, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+                const moonHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
+                moonHitbox.scale.set(moonData.radius * 6, moonData.radius * 6, moonData.radius * 6); // Hitbox bem maior para cliques precisos
                 moonHitbox.position.copy(moonMesh.position);
                 moonHitbox.userData = { ...moonData.data, name: moonData.name, type: "Satélite Natural", radius: moonData.radius };
                 
@@ -123,7 +129,6 @@ function init() {
         if (data.hasISS) {
             issPivot = new THREE.Group();
             
-            // ISS em Escala Absurda (Ajustada minimamente para renderizar)
             const issScale = 0.02;
             const core = new THREE.Mesh(new THREE.CylinderGeometry(issScale*0.8, issScale*0.8, issScale*4, 8), new THREE.MeshStandardMaterial({ color: 0xdddddd }));
             core.rotation.x = Math.PI / 2;
@@ -132,11 +137,10 @@ function init() {
             const p2 = new THREE.Mesh(new THREE.BoxGeometry(issScale*6, issScale*0.2, issScale*1.5), panelMat); p2.position.z = -issScale*1.5;
             
             issPivot.add(core); issPivot.add(p1); issPivot.add(p2);
-            
-            // Posiciona raspando a atmosfera terrestre (Raio Terra 1.0 + 0.05 Altitude)
             issPivot.position.set(data.radius + 0.05, 0, 0);
 
-            const issHitbox = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 8), new THREE.MeshBasicMaterial({ visible: false }));
+            const issHitbox = new THREE.Mesh(sharedLowPolyGeo, invisibleHitboxMat);
+            issHitbox.scale.set(0.4, 0.4, 0.4);
             issHitbox.position.copy(issPivot.position);
             issHitbox.userData = { ...issData, radius: issScale * 2 };
             
@@ -155,6 +159,8 @@ function init() {
     createMilkyWay();
     
     window.addEventListener('resize', onWindowResize);
+    
+    // Suporte Universal a Toques sem Falsos Positivos
     let pointerDownPos = new THREE.Vector2();
     renderer.domElement.addEventListener('pointerdown', (e) => pointerDownPos.set(e.clientX, e.clientY));
     renderer.domElement.addEventListener('pointerup', (e) => {
@@ -164,15 +170,18 @@ function init() {
     setupUIControls();
 }
 
-// Geração Procedural da Via-Láctea (Espiral Logarítmica e Colorida)
+// --- Geração Procedural da Via-Láctea (Dinâmica) ---
 function createMilkyWay() {
-    const particles = 80000;
+    // OTIMIZAÇÃO: Detecta se é celular ou computador e corta as partículas pela metade se necessário
+    const isMobile = window.innerWidth < 768;
+    const particles = isMobile ? 30000 : 70000; 
+
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(particles * 3);
     const colors = new Float32Array(particles * 3);
     
-    const colorInside = new THREE.Color(0xffeebb); // Núcleo amarelado denso
-    const colorOutside = new THREE.Color(0x1133aa); // Braços azuis gélidos
+    const colorInside = new THREE.Color(0xffeebb);
+    const colorOutside = new THREE.Color(0x1133aa);
 
     const arms = 5;
     const armSpin = 4;
@@ -185,16 +194,14 @@ function createMilkyWay() {
         const spinAngle = radius * armSpin / galaxyRadius;
         const branchAngle = (i % arms) * ((Math.PI * 2) / arms);
 
-        // Dispersão parabólica para dar volume natural ao disco
         const scatterX = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (galaxyRadius/radius);
         const scatterY = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * galaxyThickness * (1 - radius/galaxyRadius);
         const scatterZ = Math.pow(Math.random(), 3) * (Math.random() < 0.5 ? 1 : -1) * 300 * (galaxyRadius/radius);
 
         positions[i3] = Math.cos(branchAngle + spinAngle) * radius + scatterX;
-        positions[i3 + 1] = scatterY - 1000; // Galáxia posicionada fisicamente "abaixo" do plano solar
+        positions[i3 + 1] = scatterY - 1000;
         positions[i3 + 2] = Math.sin(branchAngle + spinAngle) * radius + scatterZ;
 
-        // Interpolação radial de cores
         const mixedColor = colorInside.clone();
         mixedColor.lerp(colorOutside, radius / galaxyRadius);
         colors[i3] = mixedColor.r; colors[i3 + 1] = mixedColor.g; colors[i3 + 2] = mixedColor.b;
@@ -203,7 +210,7 @@ function createMilkyWay() {
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const material = new THREE.PointsMaterial({ size: 10, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.7 });
+    const material = new THREE.PointsMaterial({ size: isMobile ? 15 : 10, sizeAttenuation: true, depthWrite: false, blending: THREE.AdditiveBlending, vertexColors: true, transparent: true, opacity: 0.6 });
 
     galaxyMesh = new THREE.Points(geometry, material);
     galaxyMesh.visible = false;
@@ -213,13 +220,16 @@ function createMilkyWay() {
 function createOrbitLine(radius) {
     if(radius === 0) return;
     const points = [];
-    for (let i = 0; i <= 256; i++) points.push(new THREE.Vector3(Math.cos(i/256 * Math.PI*2) * radius, 0, Math.sin(i/256 * Math.PI*2) * radius));
+    for (let i = 0; i <= 128; i++) points.push(new THREE.Vector3(Math.cos(i/128 * Math.PI*2) * radius, 0, Math.sin(i/128 * Math.PI*2) * radius));
     scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.05 })));
 }
 
 function createStarfield() {
-    const pos = new Float32Array(4000 * 3);
-    for (let i = 0; i < 12000; i += 3) {
+    const isMobile = window.innerWidth < 768;
+    const totalStars = isMobile ? 1500 : 4000;
+    
+    const pos = new Float32Array(totalStars * 3);
+    for (let i = 0; i < totalStars * 3; i += 3) {
         const r = 2000 + Math.random() * 2000, u = Math.random(), v = Math.random();
         const theta = u * 2 * Math.PI, phi = Math.acos(2 * v - 1);
         pos[i] = r * Math.sin(phi) * Math.cos(theta); pos[i+1] = r * Math.sin(phi) * Math.sin(theta); pos[i+2] = r * Math.cos(phi);
@@ -249,7 +259,6 @@ function onPlanetClick(event) {
         focusedPlanetMesh = clickedObj;
         focusedPlanetMesh.getWorldPosition(previousTargetPos);
         
-        // Offset Dinâmico Inteligente de Câmera baseado no tamanho da estrutura real!
         const r = info.radius || 1;
         targetCamPos.copy(previousTargetPos).add(new THREE.Vector3(r * 2.5, r * 1.5, r * 3.5));
         
@@ -263,7 +272,7 @@ function onPlanetClick(event) {
         document.getElementById('planet-atm').textContent = info.atm;
         document.getElementById('planet-temp').textContent = info.temp;
         document.getElementById('planet-fact').textContent = info.fact;
-        infoPanel.classList.add('visible');
+        document.getElementById('info-panel').classList.add('visible');
     }
 }
 
@@ -273,14 +282,14 @@ function resetCamera() {
     controls.enabled = true;
     camera.position.set(0, 400, 700);
     controls.target.set(0,0,0);
-    infoPanel.classList.remove('visible');
+    document.getElementById('info-panel').classList.remove('visible');
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
     if(galaxyMesh && galaxyMesh.visible) {
-        galaxyMesh.rotation.y += 0.0005; // Galáxia rotacionando majestosamente e muito devagar
+        galaxyMesh.rotation.y += 0.0005; 
     }
 
     planetsSystem.forEach((sys) => {
@@ -308,7 +317,7 @@ function animate() {
             });
 
             if (sys.issPivot && issActive) {
-                sys.issPivot.rotation.y += 0.1; // ISS Orbita em velocidade extrema
+                sys.issPivot.rotation.y += 0.1; 
                 sys.issPivot.rotation.x += 0.02;
             }
         }
@@ -321,7 +330,7 @@ function animate() {
 
         if (isLerpingCamera) {
             targetCamPos.add(delta); 
-            camera.position.lerp(targetCamPos, 0.05); // Interpolação suave e cinematográfica
+            camera.position.lerp(targetCamPos, 0.05); 
             controls.target.lerp(currentTargetPos, 0.05);
             if (camera.position.distanceTo(targetCamPos) < 0.2) { isLerpingCamera = false; controls.enabled = true; }
         } else {
@@ -336,18 +345,17 @@ function animate() {
 }
 
 function setupUIControls() {
-    document.getElementById('close-panel').addEventListener('click', () => infoPanel.classList.remove('visible'));
+    document.getElementById('close-panel').addEventListener('click', () => document.getElementById('info-panel').classList.remove('visible'));
     document.getElementById('btn-reset').addEventListener('click', resetCamera);
     document.getElementById('btn-view').addEventListener('click', () => { resetCamera(); camera.position.set(0, 1000, 0.1); });
 
-    // Alternar Galáxia
     const btnGalaxy = document.getElementById('btn-toggle-galaxy');
     btnGalaxy.addEventListener('click', () => {
         galaxyMesh.visible = !galaxyMesh.visible;
         btnGalaxy.classList.toggle('active');
         btnGalaxy.innerText = galaxyMesh.visible ? "Via-Láctea: ON" : "Via-Láctea: OFF";
         if(galaxyMesh.visible) {
-            camera.position.set(0, 1500, 2000); // Afasta a visão para abraçar o cosmos
+            camera.position.set(0, 1500, 2000);
         }
     });
 
