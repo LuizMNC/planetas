@@ -2,7 +2,7 @@
 body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; touch-action: none; }
 #canvas-container { position: absolute; top: 0; left: 0; z-index: 1; width: 100%; height: 100%; touch-action: none; }
 
-/* Assinatura */
+/* Assinatura Acadêmica */
 #author-signature {
     position: absolute; bottom: 20px; right: 20px; z-index: 10;
     color: rgba(255, 255, 255, 0.7); font-size: 0.85rem; text-align: right;
@@ -11,7 +11,7 @@ body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000
 }
 #author-signature strong { color: #fff; }
 
-/* Controles */
+/* Controles de Interface */
 .controls { position: absolute; left: 20px; z-index: 10; display: flex; gap: 10px; flex-wrap: wrap; max-width: calc(100% - 40px); }
 .top-controls { top: 20px; }
 .bottom-controls { bottom: 20px; left: 20px; }
@@ -23,8 +23,10 @@ button:active { transform: scale(0.95); }
 button.active { background: rgba(77, 166, 255, 0.3); border-color: #4da6ff; color: #fff; }
 button:hover:not(.active) { background: rgba(100, 100, 255, 0.2); }
 .highlight-btn { background: rgba(120, 77, 255, 0.3); border-color: #9b4dff; font-weight: bold; }
+.galaxy-btn { background: rgba(255, 255, 255, 0.1); border-color: #ffffff; }
+.galaxy-btn.active { background: rgba(255, 255, 255, 0.9); color: #000; text-shadow: none; box-shadow: 0 0 15px rgba(255,255,255,0.8); }
 
-/* Painel Lateral */
+/* Painel Lateral Dinâmico */
 #info-panel {
     position: absolute; right: -380px; top: 0; width: 380px; height: 100%;
     background: rgba(10, 10, 20, 0.95); border-left: 1px solid rgba(100, 100, 255, 0.2);
@@ -38,7 +40,7 @@ button:hover:not(.active) { background: rgba(100, 100, 255, 0.2); }
 #info-panel p strong { color: #a3c2ff; }
 .curiosity { background: rgba(77, 166, 255, 0.1); border-left: 4px solid #4da6ff; padding: 15px; margin-top: 20px; font-size: 0.95rem; line-height: 1.5; }
 
-/* Modal */
+/* Modal de Conceitos Físicos */
 #physics-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.3s; backdrop-filter: blur(10px); }
 #physics-modal.hidden { opacity: 0; pointer-events: none; }
 .modal-content { background: #11111a; border: 1px solid #4da6ff; border-radius: 12px; width: 90%; max-width: 700px; max-height: 85vh; padding: 40px; overflow-y: auto; position: relative; color: #ddd; }
@@ -48,14 +50,14 @@ button:hover:not(.active) { background: rgba(100, 100, 255, 0.2); }
 .topic p { line-height: 1.6; font-size: 1rem; text-align: justify; }
 #close-physics { position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 1.8rem; color: #fff; cursor: pointer; }
 
-/* Mobile */
+/* Responsividade Mobile Absoluta */
 @media (max-width: 768px) {
     #info-panel { width: 100%; height: 55%; bottom: -55%; top: auto; right: 0; border-left: none; border-top: 2px solid rgba(100, 100, 255, 0.4); transition: bottom 0.4s ease; border-radius: 20px 20px 0 0; }
     #info-panel.visible { bottom: 0; }
     .top-controls { justify-content: center; width: 100%; left: 0; }
-    .bottom-controls { bottom: 80px; width: 100%; left: 0; justify-content: center; }
+    .bottom-controls { bottom: 85px; width: 100%; left: 0; justify-content: center; }
     .control-group { width: 95%; justify-content: space-between; }
     button { flex-grow: 1; font-size: 0.8rem; padding: 8px 5px; }
-    #author-signature { bottom: 15px; top: auto; right: 10px; font-size: 0.75rem; background: transparent; border-right: none; }
+    #author-signature { bottom: 15px; top: auto; right: 10px; font-size: 0.7rem; background: transparent; border-right: none; }
     .modal-content { padding: 25px; }
 }
