@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simulador Astrofísico 3D - Escala Real</title>
+    <title>Simulador Astrofísico 3D - Escala Dinâmica</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,10 +16,16 @@
 
     <div class="controls top-controls">
         <button id="btn-view">Visão de Topo</button>
-        <button id="btn-reset">Visão Geral (Sol)</button>
+        <button id="btn-reset">Visão Geral</button>
         <button id="btn-physics" class="highlight-btn">🌌 Física do Espaço</button>
         <button id="btn-toggle-galaxy" class="galaxy-btn">Via-Láctea: OFF</button>
     </div>
+
+    <nav id="astro-menu">
+        <h3>Destinos</h3>
+        <ul id="astro-list">
+            </ul>
+    </nav>
 
     <div class="controls bottom-controls">
         <div class="control-group">
@@ -49,18 +55,13 @@
             <h2>Explorando a Física no Espaço</h2>
             
             <div class="topic">
-                <h3>A Escala Volumétrica Real</h3>
-                <p>Nesta simulação, os <strong>volumes</strong> dos astros estão em escala real proporcional. A Terra (diâmetro de 12.742 km) tem valor 1. O Sol, sendo colossal, tem valor 109. Por isso o Sol parece tão massivo na tela em comparação aos planetas rochosos. As distâncias de órbita foram logaritmicamente comprimidas para que tudo caiba na sua tela, ou os planetas estariam a dezenas de quilômetros virtuais de distância!</p>
-            </div>
-
-            <div class="topic">
-                <h3>Velocidade da Luz</h3>
-                <p>A luz viaja no vácuo a aproximadamente <strong>300.000 km/s</strong> ($c \approx 3 \times 10^8 \text{ m/s}$). Como a Terra está a 149,6 milhões de km do Sol, aplicando $\Delta t = \Delta s / v$, vemos que a luz leva cerca de 8 minutos e 20 segundos para nos alcançar.</p>
+                <h3>Escala Semi-Proporcional</h3>
+                <p>Para fins didáticos, esta simulação usa uma escala visual otimizada. Na realidade, o Sol é 109 vezes maior que a Terra. Aqui, ele é mantido massivo, mas reduzido o suficiente para que possamos observar os planetas rochosos confortavelmente. A hierarquia física (Júpiter maior que a Terra, Terra maior que Marte) é rigorosamente mantida.</p>
             </div>
 
             <div class="topic">
                 <h3>Movimento Uniforme e Microgravidade (ISS)</h3>
-                <p>A ISS orbita a Terra a apenas 400 km de altitude. Ela viaja a cerca de 28.000 km/h. Seus tripulantes experimentam a "microgravidade" não porque a gravidade sumiu (ela ainda é 90% da força na superfície), mas porque a ISS está em um estado de <strong>queda livre contínua</strong> ao redor do globo, com sua velocidade tangencial impedindo que colida com o solo.</p>
+                <p>A ISS orbita a Terra a apenas 400 km de altitude viajando a 28.000 km/h. Os tripulantes experimentam a "microgravidade" não por falta de gravidade, mas porque a estação está em um estado de <strong>queda livre contínua</strong>, gerando a sensação de imponderabilidade.</p>
             </div>
         </div>
     </div>
